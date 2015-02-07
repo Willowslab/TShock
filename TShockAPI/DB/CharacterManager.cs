@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("tsCharacter",
+            var table = new SqlTable(wlabconf.dbt_character,
 			                         new SqlColumn("Account", MySqlDbType.Int32) {Primary = true},
 									 new SqlColumn("Health", MySqlDbType.Int32),
 			                         new SqlColumn("MaxHealth", MySqlDbType.Int32),
@@ -66,7 +66,7 @@ namespace TShockAPI.DB
 
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM tsCharacter WHERE Account=@0", acctid))
+                using (var reader = database.QueryReader("SELECT * FROM " + wlabconf.dbt_character + " WHERE Account=@0", acctid))
 				{
 					if (reader.Read())
 					{
@@ -123,7 +123,7 @@ namespace TShockAPI.DB
 			string initialItems = inventory.ToString();
 			try
 			{
-				database.Query("INSERT INTO tsCharacter (Account, Health, MaxHealth, Mana, MaxMana, Inventory, spawnX, spawnY, questsCompleted) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8);", 
+                database.Query("INSERT INTO " + wlabconf.dbt_character + " (Account, Health, MaxHealth, Mana, MaxMana, Inventory, spawnX, spawnY, questsCompleted) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8);", 
 							   user.ID,
 							   TShock.ServerSideCharacterConfig.StartingHealth,
 							   TShock.ServerSideCharacterConfig.StartingHealth,
@@ -156,7 +156,7 @@ namespace TShockAPI.DB
 				try
 				{
 					database.Query(
-						"INSERT INTO tsCharacter (Account, Health, MaxHealth, Mana, MaxMana, Inventory, spawnX, spawnY, hair, hairDye, hairColor, pantsColor, shirtColor, underShirtColor, shoeColor, hideVisuals, skinColor, eyeColor, questsCompleted) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18);", 
+                        "INSERT INTO " + wlabconf.dbt_character + " (Account, Health, MaxHealth, Mana, MaxMana, Inventory, spawnX, spawnY, hair, hairDye, hairColor, pantsColor, shirtColor, underShirtColor, shoeColor, hideVisuals, skinColor, eyeColor, questsCompleted) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18);", 
 						player.UserID, playerData.health, playerData.maxHealth, playerData.mana, playerData.maxMana, NetItem.ToString(playerData.inventory), player.TPlayer.SpawnX, player.TPlayer.SpawnY, player.TPlayer.hair, player.TPlayer.hairDye, TShock.Utils.EncodeColor(player.TPlayer.hairColor), TShock.Utils.EncodeColor(player.TPlayer.pantsColor),TShock.Utils.EncodeColor(player.TPlayer.shirtColor), TShock.Utils.EncodeColor(player.TPlayer.underShirtColor), TShock.Utils.EncodeColor(player.TPlayer.shoeColor), TShock.Utils.EncodeBitsByte(player.TPlayer.hideVisual), TShock.Utils.EncodeColor(player.TPlayer.skinColor),TShock.Utils.EncodeColor(player.TPlayer.eyeColor), player.TPlayer.anglerQuestsFinished);
 					return true;
 				}
@@ -170,7 +170,7 @@ namespace TShockAPI.DB
 				try
 				{
 					database.Query(
-						"UPDATE tsCharacter SET Health = @0, MaxHealth = @1, Mana = @2, MaxMana = @3, Inventory = @4, spawnX = @6, spawnY = @7, hair = @8, hairDye = @9, hairColor = @10, pantsColor = @11, shirtColor = @12, underShirtColor = @13, shoeColor = @14, hideVisuals = @15, skinColor = @16, eyeColor = @17, questsCompleted = @18 WHERE Account = @5;",
+                        "UPDATE " + wlabconf.dbt_character + " SET Health = @0, MaxHealth = @1, Mana = @2, MaxMana = @3, Inventory = @4, spawnX = @6, spawnY = @7, hair = @8, hairDye = @9, hairColor = @10, pantsColor = @11, shirtColor = @12, underShirtColor = @13, shoeColor = @14, hideVisuals = @15, skinColor = @16, eyeColor = @17, questsCompleted = @18 WHERE Account = @5;",
 						playerData.health, playerData.maxHealth, playerData.mana, playerData.maxMana, NetItem.ToString(playerData.inventory), player.UserID, player.TPlayer.SpawnX, player.TPlayer.SpawnY, player.TPlayer.hair, player.TPlayer.hairDye, TShock.Utils.EncodeColor(player.TPlayer.hairColor), TShock.Utils.EncodeColor(player.TPlayer.pantsColor), TShock.Utils.EncodeColor(player.TPlayer.shirtColor), TShock.Utils.EncodeColor(player.TPlayer.underShirtColor), TShock.Utils.EncodeColor(player.TPlayer.shoeColor), TShock.Utils.EncodeBitsByte(player.TPlayer.hideVisual), TShock.Utils.EncodeColor(player.TPlayer.skinColor), TShock.Utils.EncodeColor(player.TPlayer.eyeColor), player.TPlayer.anglerQuestsFinished);
 					return true;
 				}
@@ -186,7 +186,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("DELETE FROM tsCharacter WHERE Account = @0;", userid);
+                database.Query("DELETE FROM " + wlabconf.dbt_character + " WHERE Account = @0;", userid);
 				return true;
 			}
 			catch (Exception ex)

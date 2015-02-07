@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("ItemBans",
+            var table = new SqlTable(wlabconf.dbt_itemban,
 			                         new SqlColumn("ItemName", MySqlDbType.VarChar, 50) {Primary = true},
 			                         new SqlColumn("AllowedGroups", MySqlDbType.Text)
 				);
@@ -49,7 +49,7 @@ namespace TShockAPI.DB
 		{
 			ItemBans.Clear();
 
-			using (var reader = database.QueryReader("SELECT * FROM ItemBans"))
+            using (var reader = database.QueryReader("SELECT * FROM "+ wlabconf.dbt_itemban))
 			{
 				while (reader != null && reader.Read())
 				{
@@ -64,7 +64,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("INSERT INTO ItemBans (ItemName, AllowedGroups) VALUES (@0, @1);",
+                database.Query("INSERT INTO " + wlabconf.dbt_itemban + " (ItemName, AllowedGroups) VALUES (@0, @1);",
 				               TShock.Utils.GetItemByName(itemname)[0].name, "");
 				if (!ItemIsBanned(itemname, null))
 					ItemBans.Add(new ItemBan(itemname));
@@ -81,7 +81,7 @@ namespace TShockAPI.DB
 				return;
 			try
 			{
-				database.Query("DELETE FROM ItemBans WHERE ItemName=@0;", TShock.Utils.GetItemByName(itemname)[0].name);
+                database.Query("DELETE FROM " + wlabconf.dbt_itemban + " WHERE ItemName=@0;", TShock.Utils.GetItemByName(itemname)[0].name);
 				ItemBans.Remove(new ItemBan(itemname));
 			}
 			catch (Exception ex)
@@ -119,7 +119,7 @@ namespace TShockAPI.DB
 					groupsNew += name;
 					b.SetAllowedGroups(groupsNew);
 
-					int q = database.Query("UPDATE ItemBans SET AllowedGroups=@0 WHERE ItemName=@1", groupsNew,
+                    int q = database.Query("UPDATE " + wlabconf.dbt_itemban + " SET AllowedGroups=@0 WHERE ItemName=@1", groupsNew,
 					                       item);
 					
 					return q > 0;
@@ -142,7 +142,7 @@ namespace TShockAPI.DB
 				{				
 					b.RemoveGroup(group);
 					string groups = string.Join(",", b.AllowedGroups);
-					int q = database.Query("UPDATE ItemBans SET AllowedGroups=@0 WHERE ItemName=@1", groups,
+                    int q = database.Query("UPDATE " + wlabconf.dbt_itemban + " SET AllowedGroups=@0 WHERE ItemName=@1", groups,
 					                       item);
 					
 					if (q > 0)

@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Net;
 using System.Reflection;
 using MaxMind;
@@ -66,7 +67,9 @@ namespace TShockAPI
 		public static ProjectileManagager ProjectileBans;
 		public static TileManager TileBans;
 		public static RememberedPosManager RememberedPos;
-		public static CharacterManager CharacterDB;
+        public static CharacterManager CharacterDB;
+        public static isLogged isLogged;
+        public static NickName NickName;
 		public static ConfigFile Config { get; set; }
 		public static ServerSideConfig ServerSideCharacterConfig;
 		public static IDbConnection DB;
@@ -76,7 +79,9 @@ namespace TShockAPI
 		public static SecureRest RestApi;
 		public static RestManager RestManager;
 		public static Utils Utils = Utils.Instance;
+		//public static StatTracker StatTracker = new StatTracker();
 		public static UpdateManager UpdateManager;
+        public static wlabconf Conf;
 		/// <summary>
 		/// Used for implementing REST Tokens prior to the REST system starting up.
 		/// </summary>
@@ -94,7 +99,7 @@ namespace TShockAPI
 
 		public override string Name
 		{
-			get { return "TShock"; }
+			get { return "WillowsLAB TShock"; }
 		}
 
 		public override string Author
@@ -129,7 +134,7 @@ namespace TShockAPI
 			try
 			{
 				HandleCommandLine(Environment.GetCommandLineArgs());
-
+                Conf = new wlabconf();
 				if (Version.Major >= 4)
 					getTShockAscii();
 
@@ -222,6 +227,7 @@ namespace TShockAPI
 					throw new Exception("Invalid storage type");
 				}
 
+                isLogged = new isLogged(DB);
 				Backups = new BackupManager(Path.Combine(SavePath, "backups"));
 				Backups.KeepFor = Config.BackupKeepFor;
 				Backups.Interval = Config.BackupInterval;
@@ -233,8 +239,9 @@ namespace TShockAPI
 				Itembans = new ItemManager(DB);
 				ProjectileBans = new ProjectileManagager(DB);
 				TileBans = new TileManager(DB);
-				RememberedPos = new RememberedPosManager(DB);
-				CharacterDB = new CharacterManager(DB);
+                RememberedPos = new RememberedPosManager(DB);
+                CharacterDB = new CharacterManager(DB);
+                NickName = new NickName(DB);
 				RestApi = new SecureRest(Netplay.serverListenIP, Config.RestApiPort);
 				RestApi.Port = Config.RestApiPort;
 				RestManager = new RestManager(RestApi);
@@ -356,8 +363,9 @@ namespace TShockAPI
 		}
 
 	    private void OnPlayerLogin(Hooks.PlayerPostLoginEventArgs args)
-	    {
-	        User u = Users.GetUserByName(args.Player.UserAccountName);
+        {
+            User u = Users.GetUserByName(args.Player.UserAccountName);
+
             List<String> KnownIps = new List<string>();
 	        if (!string.IsNullOrWhiteSpace(u.KnownIps))
 	        {
@@ -370,13 +378,24 @@ namespace TShockAPI
 	            if (KnownIps.Count == 100)
 	            {
 	                KnownIps.RemoveAt(0);
-	            }
-
+                }
                 KnownIps.Add(args.Player.IP);
 	        }
 
             u.KnownIps = JsonConvert.SerializeObject(KnownIps, Formatting.Indented);
-	        Users.UpdateLogin(u);
+            Users.UpdateLogin(u);
+
+            try
+            {
+                args.Player.titlePrefixReload();
+            }
+            catch { }
+
+            try
+            {
+                Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Name;
+            }
+            catch { }
 	    }
 
 		private void OnPlayerPreLogin(Hooks.PlayerPreLoginEventArgs args)
@@ -612,6 +631,7 @@ namespace TShockAPI
 			ComputeMaxStyles();
 			FixChestStacks();
 			
+			//StatTracker.Initialize();
 			UpdateManager = new UpdateManager();
 		}
 
@@ -656,13 +676,14 @@ namespace TShockAPI
 
 		private void OnUpdate(EventArgs args)
 		{
+
 			if (Backups.IsBackupTime)
 				Backups.Backup();
-			//call these every second, not every update
+
 			if ((DateTime.UtcNow - LastCheck).TotalSeconds >= 1)
 			{
 				OnSecondUpdate();
-				LastCheck = DateTime.UtcNow;
+                LastCheck = DateTime.UtcNow;
 			}
 
 			if (Main.ServerSideCharacter && (DateTime.UtcNow - LastSave).TotalMinutes >= ServerSideCharacterConfig.ServerSideCharacterSave)
@@ -760,7 +781,7 @@ namespace TShockAPI
 					
 					if (player.TileLiquidThreshold >= Config.TileLiquidThreshold)
 					{
-						player.Disable("Reached TileLiquid threshold");
+						//player.Disable("Reached TileLiquid threshold");
 					}
 					if (player.TileLiquidThreshold > 0)
 					{
@@ -951,7 +972,7 @@ namespace TShockAPI
 			        DateTime exp;
 					if (!DateTime.TryParse(ban.Expiration, out exp))
 					{
-						player.Disconnect("You are banned forever: " + ban.Reason);
+						player.Disconnect("너님은 추방당했습니다. 다음과 같은 사유 : " + ban.Reason);
 					}
 					else
 					{
@@ -991,13 +1012,60 @@ namespace TShockAPI
 		private void OnLeave(LeaveEventArgs args)
 		{
 			var tsplr = Players[args.Who];
-			Players[args.Who] = null;
+            Players[args.Who] = null;
+
+            int Onlineuser = 0;
+            StringBuilder sb = new StringBuilder();
+            foreach (var plr in TShock.Players)
+            {
+                if (plr == null)
+                {
+                    continue;
+                }
+
+                if (plr.UserID == -1)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    sb.AppendLine(plr.TPlayer.name + "," + plr.UserID.ToString());
+                    Onlineuser++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                }
+            }
+            File.WriteAllText(
+            Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName.ToString()).FullName.ToString()).FullName.ToString(), "SERVERSET", "HOSTDIR", "onlineusers", Conf.channelname + "_users.txt")
+                , sb.ToString()
+                , Encoding.UTF8);
+            Console.WriteLine("온라인 유저 " + Onlineuser + " 명");
+
+            if(Onlineuser == 0)
+            {
+                SaveManager.Instance.SaveWorld(false);
+                foreach (TSPlayer tsply in TShock.Players.Where(tsply => tsply != null))
+                {
+                    tsply.SaveServerCharacter();
+                }
+            }
 
 			if (tsplr != null && tsplr.ReceivedInfo)
 			{
 				if (!tsplr.SilentKickInProgress && tsplr.State >= 3)
-					Utils.Broadcast(tsplr.Name + " has left.", Color.Yellow);
-				Log.Info(string.Format("{0} disconnected.", tsplr.Name));
+                {
+                    if (TShock.Users.changeLogged(tsplr.UserID,tsplr.Name,false))
+                    {
+                        isLogged.LoggedOut(tsplr.UserID);
+                        Utils.Broadcast("<SYSTEM> " + tsplr.Name + TSKoreanEndParse(tsplr.Name, 2) + " 접속을 종료했습니다.", 255, 128, 128);
+                    }
+                    //Utils.Broadcast(string.Format("({0} is {1})", tsplr.Name, tsplr.UserID), Color.Yellow);
+                }
+                Log.Info(string.Format("{0} disconnected.", tsplr.Name));
+
 
 				if (tsplr.IsLoggedIn && !tsplr.IgnoreActionsForClearingTrashCan && Main.ServerSideCharacter && (!tsplr.Dead || tsplr.TPlayer.difficulty != 2))
 				{
@@ -1011,9 +1079,44 @@ namespace TShockAPI
 				}
 			}
 		}
+        public static string TSKoreanEndParse(string str, int mode)
+        {
+            str = str.Trim();
+            if (str.Length <= 0)
+            {
+                str = "각";
+            }
+            string rtns = "";
+            char[] check = str.ToCharArray();
+            int Wlab_LANG = Convert.ToInt32(check[str.Length - 1]) - 44032; // 0xAC00
+            if (Wlab_LANG < 0)
+            {
+                Wlab_LANG = 1;
+                int tmp = Convert.ToInt32(check[str.Length - 1]);
+                if (tmp == 65 || tmp == 69 || tmp == 73 || tmp == 79 || tmp == 85 || tmp == 97 || tmp == 101 || tmp == 105 || tmp == 111 || tmp == 117)
+                    Wlab_LANG = 0;
+            }
+
+            if (0 == (Wlab_LANG % 28))
+            {
+                if (mode == 0) rtns = "는";
+                else if (mode == 1) rtns = "를";
+                else if (mode == 2) rtns = "가";
+                else if (mode == 3) rtns = "로";
+            }
+            else
+            {
+                if (mode == 0) rtns = "은";
+                else if (mode == 1) rtns = "을";
+                else if (mode == 2) rtns = "이";
+                else if (mode == 3) rtns = "으로";
+            }
+            return rtns;
+        }
 
 		private void OnChat(ServerChatEventArgs args)
 		{
+            NickName.titleprefixload();
 			if (args.Handled)
 				return;
 
@@ -1061,37 +1164,104 @@ namespace TShockAPI
 					args.Handled = true;
 				}
 				else if (!TShock.Config.EnableChatAboveHeads)
-				{
-					var text = String.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, tsplr.Name, tsplr.Group.Suffix,
-					                         args.Text);
-					Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
-					Utils.Broadcast(text, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
+                {
+
+                    string nickname = tsplr.Name;
+                    var text = NickName.getPrefix(tsplr.UserID) + NickName.getTitle(tsplr.UserID) + nickname + " : " + args.Text;
+
+                    if (tsplr.Group.Name == "superadmin")
+                    {
+                        nickname = "GM " + nickname;
+                    }
+
+                    Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
+
+                    int[] rgb = calcRGB(tsplr.Name);
+
+                    Utils.Broadcast(text, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
 					args.Handled = true;
 				}
 				else
-				{
-					Player ply = Main.player[args.Who];
-					string name = ply.name;
-					ply.name = String.Format(Config.ChatAboveHeadsFormat, tsplr.Group.Name, tsplr.Group.Prefix, tsplr.Name, tsplr.Group.Suffix);
-					NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, ply.name, args.Who, 0, 0, 0, 0);
-					ply.name = name;
-					var text = args.Text;
-					Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
-					NetMessage.SendData((int)PacketTypes.ChatText, -1, args.Who, text, args.Who, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
-					NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, name, args.Who, 0, 0, 0, 0);
+                {
+                    try
+                    {
+                        /* WillowsLAB 전용 */
+                        int[] rgb = calcRGB(tsplr.Name);
 
-					string msg = String.Format("<{0}> {1}",
-						String.Format(Config.ChatAboveHeadsFormat, tsplr.Group.Name, tsplr.Group.Prefix, tsplr.Name, tsplr.Group.Suffix),
-						text);
+                        //Setting Nickname Color
+                        tsplr.Group.R = (byte)rgb[0];
+                        tsplr.Group.G = (byte)rgb[1];
+                        tsplr.Group.B = (byte)rgb[2];
 
-					tsplr.SendMessage(msg, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
+                        //act A
+                        Player ply = Main.player[args.Who];
+                        string name = ply.name;
+                        string prefix = tsplr.prefix;
+                        string title = tsplr.title;
 
-					TSPlayer.Server.SendMessage(msg, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
-					Log.Info(string.Format("Broadcast: {0}", msg));
-					args.Handled = true;
+                        NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL", args.Who, 0, 0, 0, 0);
+                        string nickname = prefix + title + tsplr.Name;
+
+                        var text = nickname + " : " + args.Text;
+                        Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
+
+                        //Send Prefix Data
+
+                        //Sending AboveHead
+                        NetMessage.SendData((int)PacketTypes.ChatText, -1, args.Who, text, args.Who, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
+                        NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, name, args.Who, 0, 0, 0, 0);
+
+                        string msg = "<LOCAL> " + nickname + " : " + args.Text;
+
+                        tsplr.SendMessage(msg, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
+                        TSPlayer.Server.SendMessage(msg, tsplr.Group.R, tsplr.Group.G, tsplr.Group.B);
+
+                        //broadcasting Console
+                        Log.Info(string.Format("Broadcast: {0}", text));
+                        args.Handled = true;
+                    }
+                    catch(Exception ex)
+                    {
+                        int[] rgb = calcRGB(tsplr.Name);
+
+                        //Setting Nickname Color
+                        tsplr.Group.R = (byte)rgb[0];
+                        tsplr.Group.G = (byte)rgb[1];
+                        tsplr.Group.B = (byte)rgb[2];
+
+                        Console.WriteLine(ex.GetBaseException().ToString());
+                        var text = String.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, tsplr.Name, tsplr.Group.Suffix, args.Text);
+                        Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
+
+                        Utils.Broadcast(text, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
+                        args.Handled = true;
+                    }
 				}
 			}
 		}
+
+        public int[] calcRGB(string str)
+        {
+            int[] rgb = { 0, 0, 0 };
+            if(str.Length <= 12 && str.Length > 2)
+            {
+                for (int i = 0; i < str.Length; i++)
+                {
+                    rgb[i % 3] += (int)str.ToCharArray()[i];
+                }
+
+                rgb[0] = ((rgb[0] * 101) % 97) + 159;
+                rgb[1] = ((rgb[1] * 101) % 97) + 159;
+                rgb[2] = ((rgb[2] * 101) % 97) + 159;
+            }
+            else
+            {
+                rgb[0] = 192;
+                rgb[1] = 192;
+                rgb[2] = 192;
+            }
+            return rgb;
+        }
 
 		/// <summary>
 		/// When a server command is run.
@@ -1186,7 +1356,37 @@ namespace TShockAPI
 			{
 				args.Handled = true;
 				return;
-			}
+            }
+
+            int Onlineuser = 0;
+            StringBuilder sb = new StringBuilder();
+            foreach (var plr in TShock.Players)
+            {
+                if (plr == null)
+                {
+                    continue;
+                }
+
+                if (plr.UserID == -1)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    sb.AppendLine(plr.TPlayer.name + "," + plr.UserID.ToString());
+                    Onlineuser++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                }
+            }
+            File.WriteAllText(
+            Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName.ToString()).FullName.ToString()).FullName.ToString(), "SERVERSET", "HOSTDIR", "onlineusers", Conf.channelname + "_users.txt")
+                , sb.ToString()
+                , Encoding.UTF8);
+            Console.WriteLine("온라인 유저 " + Onlineuser + " 명");
 
 			player.LoginMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
@@ -1196,14 +1396,18 @@ namespace TShockAPI
 									   player.Group.Name, player.Country, TShock.Utils.ActivePlayers(),
 									   TShock.Config.MaxSlots));
 				if (!player.SilentJoinInProgress)
-					TShock.Utils.Broadcast(string.Format("{0} ({1}) has joined.", player.Name, player.Country), Color.Yellow);
+                {
+
+                }
 			}
 			else
 			{
 				Log.Info(string.Format("{0} ({1}) from '{2}' group joined. ({3}/{4})", player.Name, player.IP,
 									   player.Group.Name, TShock.Utils.ActivePlayers(), TShock.Config.MaxSlots));
-				if (!player.SilentJoinInProgress)
-					TShock.Utils.Broadcast(player.Name + " has joined.", Color.Yellow);
+                if (!player.SilentJoinInProgress)
+                {
+
+                }
 			}
 
 			if (TShock.Config.DisplayIPToAdmins)
@@ -1235,12 +1439,12 @@ namespace TShockAPI
 				}
 			}
 
-			player.LastNetPosition = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f);
+            player.LastNetPosition = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f);
 
 			if (Config.RememberLeavePos && (RememberedPos.GetLeavePos(player.Name, player.IP) != Vector2.Zero) && !player.LoginHarassed)
 			{
 				player.RPPending = 3;
-				player.SendMessage("You will be teleported to your last known location...", Color.Red);
+				player.SendMessage("이 맵에서 가장 마지막에 접속을 종료했던 위치로 이동합니다.", Color.Red);
 			}
 
 			args.Handled = true;

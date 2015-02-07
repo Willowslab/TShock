@@ -1310,60 +1310,60 @@ namespace TShockAPI
 			}
 			
 			return false;
-		}
+        }
 
-		public static bool HandlePlayerHp(GetDataHandlerArgs args)
-		{
-			var plr = args.Data.ReadInt8();
-			var cur = args.Data.ReadInt16();
-			var max = args.Data.ReadInt16();
+        public static bool HandlePlayerHp(GetDataHandlerArgs args)
+        {
+            var plr = args.Data.ReadInt8();
+            var cur = args.Data.ReadInt16();
+            var max = args.Data.ReadInt16();
 
-			if (OnPlayerHP(plr, cur, max) || cur <= 0 || max <= 0 || args.Player.IgnoreSSCPackets)
-				return true;
+            if (OnPlayerHP(plr, cur, max) || cur <= 0 || max <= 0 || args.Player.IgnoreSSCPackets)
+                return true;
 
-			if (max > TShock.Config.MaxHP && !args.Player.Group.HasPermission(Permissions.ignorehp))
-			{
-				args.Player.Disable("Maximum HP beyond limit");
-				return true;
-			}
+            if (max > TShock.Config.MaxHP && !args.Player.Group.HasPermission(Permissions.ignorehp))
+            {
+                args.Player.Disable("Maximum HP beyond limit");
+                return true;
+            }
 
-			if (args.Player.IsLoggedIn)
-			{
-				args.Player.TPlayer.statLife = cur;
-				args.Player.TPlayer.statLifeMax = max;
-				args.Player.PlayerData.maxHealth = max;
-			}
+            if (args.Player.IsLoggedIn)
+            {
+                args.Player.TPlayer.statLife = cur;
+                args.Player.TPlayer.statLifeMax = max;
+                args.Player.PlayerData.maxHealth = max;
+            }
 
-			if (args.Player.GodMode && (cur < max))
-			{
-				args.Player.Heal(args.TPlayer.statLifeMax2);
-			}
-			return false;
-		}
+            if (args.Player.GodMode && (cur < max))
+            {
+                args.Player.Heal(args.TPlayer.statLifeMax2);
+            }
+            return false;
+        }
 
-		private static bool HandlePlayerMana(GetDataHandlerArgs args)
-		{
-			var plr = args.Data.ReadInt8();
-			var cur = args.Data.ReadInt16();
-			var max = args.Data.ReadInt16();
+        private static bool HandlePlayerMana(GetDataHandlerArgs args)
+        {
+            var plr = args.Data.ReadInt8();
+            var cur = args.Data.ReadInt16();
+            var max = args.Data.ReadInt16();
 
-			if (OnPlayerMana(plr, cur, max) || cur < 0 || max < 0 || args.Player.IgnoreSSCPackets)
-				return true;
+            if (OnPlayerMana(plr, cur, max) || cur < 0 || max < 0 || args.Player.IgnoreSSCPackets)
+                return true;
 
-			if (max > TShock.Config.MaxMP && !args.Player.Group.HasPermission(Permissions.ignoremp))
-			{
-				args.Player.Disable("Maximum MP beyond limit");
-				return true;
-			}
+            if (max > TShock.Config.MaxMP && !args.Player.Group.HasPermission(Permissions.ignoremp))
+            {
+                args.Player.Disable("Maximum MP beyond limit");
+                return true;
+            }
 
-			if (args.Player.IsLoggedIn)
-			{
-				args.Player.TPlayer.statMana = cur;
-				args.Player.TPlayer.statManaMax = max;
-				args.Player.PlayerData.maxMana = max;
-			}
-			return false;
-		}
+            if (args.Player.IsLoggedIn)
+            {
+                args.Player.TPlayer.statMana = cur;
+                args.Player.TPlayer.statManaMax = max;
+                args.Player.PlayerData.maxMana = max;
+            }
+            return false;
+        }
 
 		private static bool HandlePlayerInfo(GetDataHandlerArgs args)
 		{
@@ -2300,27 +2300,30 @@ namespace TShockAPI
 					control[5] = false;
 					args.Player.Disable("Using banned item");
 					args.Player.SendMessage(
-						string.Format("You cannot use {0} on this server. Your actions are being ignored.",
+						string.Format("당신은 아직 {0} 아이템을 사용할 권한이 없습니다.",
 									  args.TPlayer.inventory[item].name), Color.Red);
 				}
 
 				if (args.TPlayer.inventory[item].name == "Mana Crystal" && args.Player.TPlayer.statManaMax <= 180)
-				{
-					args.Player.TPlayer.statMana += 20;
-					args.Player.TPlayer.statManaMax += 20;
-					args.Player.PlayerData.maxMana += 20;
+                {
+                    args.Player.Disconnect("사용이 금지된 아이템을 사용하여 일시적으로 연결이 해제되었습니다.                             ");
+                //    args.Player.TPlayer.statMana += 20;
+                //    args.Player.TPlayer.statManaMax += 20;
+                //    args.Player.PlayerData.maxMana += 20;
 				}
 				else if (args.TPlayer.inventory[item].name == "Life Crystal" && args.Player.TPlayer.statLifeMax <= 380)
-				{
-					args.TPlayer.statLife += 20;
-					args.TPlayer.statLifeMax += 20;
-					args.Player.PlayerData.maxHealth += 20;
+                {
+                    args.Player.Disconnect("사용이 금지된 아이템을 사용하여 일시적으로 연결이 해제되었습니다.                             ");
+                //    args.TPlayer.statLife += 20;
+                //    args.TPlayer.statLifeMax += 20;
+                //    args.Player.PlayerData.maxHealth += 20;
 				}
 				else if (args.TPlayer.inventory[item].name == "Life Fruit" && args.Player.TPlayer.statLifeMax >= 400 && args.Player.TPlayer.statLifeMax <= 495)
-				{
-					args.TPlayer.statLife += 5;
-					args.TPlayer.statLifeMax += 5;
-					args.Player.PlayerData.maxHealth += 5;
+                {
+                    args.Player.Disconnect("사용이 금지된 아이템을 사용하여 일시적으로 연결이 해제되었습니다.                             ");
+                    //args.TPlayer.statLife += 5;
+                    //args.TPlayer.statLifeMax += 5;
+                    //args.Player.PlayerData.maxHealth += 5;
 				}
 			}
 
@@ -2447,7 +2450,7 @@ namespace TShockAPI
 				args.Player.Disable("Player does not have permission to create that projectile.", true);
 				args.Player.SendErrorMessage("You do not have permission to create that projectile.");
 				args.Player.RemoveProjectile(ident, owner);
-				return true;
+				return false;
 			}
             // Server now checks owner + ident, if owner is different, server will create new projectile.
 			/*if (args.Player.Index != owner)
@@ -3149,16 +3152,16 @@ namespace TShockAPI
 			}
 
 			if (dmg > TShock.Config.MaxDamage && !args.Player.Group.HasPermission(Permissions.ignoredamagecap) && id != args.Player.Index)
-			{
-				if (TShock.Config.KickOnDamageThresholdBroken)
-				{
-					TShock.Utils.Kick(args.Player, string.Format("Player damage exceeded {0}.", TShock.Config.MaxDamage));
-					return true;
-				}
-				else
-				{
-					args.Player.Disable(String.Format("Player damage exceeded {0}.", TShock.Config.MaxDamage));
-				}			
+            {
+                if (TShock.Config.KickOnDamageThresholdBroken)
+                {
+                    TShock.Utils.Kick(args.Player, string.Format("Player damage exceeded {0}.", TShock.Config.MaxDamage));
+                    return true;
+                }
+                else
+                {
+                    args.Player.Disable(String.Format("Player damage exceeded {0}.", TShock.Config.MaxDamage));
+                }
 				args.Player.SendData(PacketTypes.PlayerHp, "", id);
 				args.Player.SendData(PacketTypes.PlayerUpdate, "", id);
 				return true;
@@ -3215,16 +3218,16 @@ namespace TShockAPI
 				return true;
 
             if (dmg > TShock.Config.MaxDamage && !args.Player.Group.HasPermission(Permissions.ignoredamagecap))
-			{
-				if (TShock.Config.KickOnDamageThresholdBroken)
-				{
-					TShock.Utils.Kick(args.Player, string.Format("NPC damage exceeded {0}.", TShock.Config.MaxDamage));
-					return true;
-				}
-				else
-				{
-					args.Player.Disable(String.Format("NPC damage exceeded {0}.", TShock.Config.MaxDamage));
-				}
+            {
+                if (TShock.Config.KickOnDamageThresholdBroken)
+                {
+                    TShock.Utils.Kick(args.Player, string.Format("NPC damage exceeded {0}.", TShock.Config.MaxDamage));
+                    return true;
+                }
+                else
+                {
+                    args.Player.Disable(String.Format("NPC damage exceeded {0}.", TShock.Config.MaxDamage));
+                }
 				args.Player.SendData(PacketTypes.NpcUpdate, "", id);
 				return true;
 			}

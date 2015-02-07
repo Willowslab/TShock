@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ namespace TShockAPI
 				// These can be caused by an unexpected error such as a bad or out of date plugin
 				try
 				{
-					TShock.Utils.Broadcast("Saving world. Momentary lag might result from this.", Color.Red);
+					TShock.Utils.Broadcast("맵을 저장합니다. 서버 접속인원에 따라 지연현상이 발생할 수 있습니다.", Color.Red);
 				}
 				catch (Exception ex)
 				{
@@ -129,7 +129,7 @@ namespace TShockAPI
 								}
 								else
 									WorldFile.saveWorld(task.resetTime);
-									TShock.Utils.Broadcast("World saved.", Color.Yellow);
+									TShock.Utils.Broadcast("저장 작업이 완료되었습니다..", Color.Yellow);
 									Log.Info(string.Format("World saved at ({0})", Main.worldPathName));
 							}
 							catch (Exception e)

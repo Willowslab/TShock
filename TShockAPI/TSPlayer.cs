@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,11 +25,18 @@ using System.Threading;
 using Terraria;
 using TShockAPI.DB;
 using TShockAPI.Net;
+using Mono.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace TShockAPI
 {
 	public class TSPlayer
-	{
+    {
+        public string title = "";
+        public string prefix = "";
+
+        public static IDbConnection DB;
         /// <summary>
         /// This represents the server as a player.
         /// </summary>
@@ -378,6 +385,7 @@ namespace TShockAPI
         /// <returns>bool - True/false if it saved successfully</returns>
         public bool SaveServerCharacter()
         {
+            this.titlePrefixReload();
             if (!Main.ServerSideCharacter)
             {
                 return false;
@@ -426,10 +434,26 @@ namespace TShockAPI
 			get { return FakePlayer ?? Main.player[Index]; }
 		}
 
+        public bool isSetNickname = false;
+        public string Nickname = "";
+
+        /// <summary>
+        /// 이름을 반환하는 함수입니다.
+        /// </summary>
 		public string Name
 		{
-			get { return TPlayer.name; }
+			get
+            { return this.TPlayer.name; }
 		}
+
+        public void setNickname(string nickname)
+        {
+            if(!nickname.Equals(""))
+            {
+                this.Nickname = nickname;
+                this.isSetNickname = true;
+            }
+        }
 
 		public bool Active
 		{
@@ -491,6 +515,7 @@ namespace TShockAPI
             Group = Group.DefaultGroup;
 			IceTiles = new List<Point>();
             AwaitingResponse = new Dictionary<string, Action<object>>();
+            this.titlePrefixReload();
 		}
 
 		protected TSPlayer(String playerName)
@@ -501,7 +526,15 @@ namespace TShockAPI
 			FakePlayer = new Player {name = playerName, whoAmi = -1};
 		    Group = Group.DefaultGroup;
             AwaitingResponse = new Dictionary<string, Action<object>>();
+            this.titlePrefixReload();
 		}
+
+        public void titlePrefixReload()
+        {
+            this.Nickname = TShock.NickName.getUserNickname(UserID, TPlayer.name);
+            this.title = TShock.NickName.getTitle(this.UserID);
+            this.prefix = TShock.NickName.getPrefix(this.UserID);
+        }
 
 		public virtual void Disconnect(string reason)
 		{
@@ -816,6 +849,12 @@ namespace TShockAPI
 		private DateTime LastDisableNotification = DateTime.UtcNow;
 		public int ActiveChest = -1;
 		public Item ItemInHand = new Item();
+
+        public virtual void GoldBuff(bool bypass = true, bool displayConsole = true)
+        {
+            LastThreat = DateTime.UtcNow;
+            SetBuff(75, 330, bypass); //gold
+        }
 
 		public virtual void Disable(string reason = "", bool displayConsole = true)
 		{

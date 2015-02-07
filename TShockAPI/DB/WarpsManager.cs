@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("Warps",
+			var table = new SqlTable("ss_tsWarps",
 			                         new SqlColumn("Id", MySqlDbType.Int32){Primary = true, AutoIncrement = true},
 									 new SqlColumn("WarpName", MySqlDbType.VarChar, 50) {Unique = true},
 			                         new SqlColumn("X", MySqlDbType.Int32),
@@ -65,7 +65,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				if (database.Query("INSERT INTO Warps (X, Y, WarpName, WorldID) VALUES (@0, @1, @2, @3);",
+                if (database.Query("INSERT INTO ss_tsWarps (X, Y, WarpName, WorldID) VALUES (@0, @1, @2, @3);",
 					x, y, name, Main.worldID.ToString()) > 0)
 				{
 					Warps.Add(new Warp(new Point(x, y), name));
@@ -86,7 +86,7 @@ namespace TShockAPI.DB
 		{
 			Warps.Clear();
 
-			using (var reader = database.QueryReader("SELECT * FROM Warps WHERE WorldID = @0",
+            using (var reader = database.QueryReader("SELECT * FROM ss_tsWarps WHERE WorldID = @0",
 				Main.worldID.ToString()))
 			{
 				while (reader.Read())
@@ -108,7 +108,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				if (database.Query("DELETE FROM Warps WHERE WarpName = @0 AND WorldID = @1",
+                if (database.Query("DELETE FROM ss_tsWarps WHERE WarpName = @0 AND WorldID = @1",
 					warpName, Main.worldID.ToString()) > 0)
 				{
 					Warps.RemoveAll(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase));
@@ -153,7 +153,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				if (database.Query("UPDATE Warps SET X = @0, Y = @1 WHERE WarpName = @2 AND WorldID = @3",
+                if (database.Query("UPDATE ss_tsWarps SET X = @0, Y = @1 WHERE WarpName = @2 AND WorldID = @3",
 					x, y, warpName, Main.worldID.ToString()) > 0)
 				{
 					Warps.Find(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase)).Position = new Point(x, y);
@@ -177,7 +177,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				if (database.Query("UPDATE Warps SET Private = @0 WHERE WarpName = @1 AND WorldID = @2",
+                if (database.Query("UPDATE ss_tsWarps SET Private = @0 WHERE WarpName = @1 AND WorldID = @2",
 					state ? "1" : "0", warpName, Main.worldID.ToString()) > 0)
 				{
 					Warps.Find(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase)).IsPrivate = state;

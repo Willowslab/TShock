@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ namespace TShockAPI.DB
 		internal RegionManager(IDbConnection db)
 		{
 			database = db;
-			var table = new SqlTable("Regions",
+            var table = new SqlTable("ss_tsRegions",
 									 new SqlColumn("Id", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
 									 new SqlColumn("X1", MySqlDbType.Int32),
 									 new SqlColumn("Y1", MySqlDbType.Int32),
@@ -65,7 +65,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM Regions WHERE WorldID=@0", Main.worldID.ToString()))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsRegions WHERE WorldID=@0", Main.worldID.ToString()))
 				{
 					Regions.Clear();
 					while (reader.Read())
@@ -124,7 +124,7 @@ namespace TShockAPI.DB
 			try
 			{
 				database.Query(
-					"INSERT INTO Regions (X1, Y1, width, height, RegionName, WorldID, UserIds, Protected, Groups, Owner, Z) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10);",
+                    "INSERT INTO ss_tsRegions (X1, Y1, width, height, RegionName, WorldID, UserIds, Protected, Groups, Owner, Z) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10);",
 					tx, ty, width, height, regionname, worldid, "", 1, "", owner, z);
 				Regions.Add(new Region(new Rectangle(tx, ty, width, height), regionname, owner, true, worldid, z));
 				return true;
@@ -140,7 +140,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("DELETE FROM Regions WHERE RegionName=@0 AND WorldID=@1", name, Main.worldID.ToString());
+                database.Query("DELETE FROM ss_tsRegions WHERE RegionName=@0 AND WorldID=@1", name, Main.worldID.ToString());
 				var worldid = Main.worldID.ToString();
 				Regions.RemoveAll(r => r.Name == name && r.WorldID == worldid);
 				return true;
@@ -156,7 +156,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("UPDATE Regions SET Protected=@0 WHERE RegionName=@1 AND WorldID=@2", state ? 1 : 0, name,
+                database.Query("UPDATE ss_tsRegions SET Protected=@0 WHERE RegionName=@1 AND WorldID=@2", state ? 1 : 0, name,
 							   Main.worldID.ToString());
 				var region = GetRegionByName(name);
 				if (region != null)
@@ -174,7 +174,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("UPDATE Regions SET Protected=@0 WHERE RegionName=@1 AND WorldID=@2", state ? 1 : 0, name, world);
+                database.Query("UPDATE ss_tsRegions SET Protected=@0 WHERE RegionName=@1 AND WorldID=@2", state ? 1 : 0, name, world);
 				var region = GetRegionByName(name);
 				if (region != null)
 					region.DisableBuild = state;
@@ -301,7 +301,7 @@ namespace TShockAPI.DB
 				
 				foreach (var region in Regions.Where(r => r.Name == regionName))
 					region.Area = new Rectangle(X, Y, width, height);
-				int q = database.Query("UPDATE Regions SET X1 = @0, Y1 = @1, width = @2, height = @3 WHERE RegionName = @4 AND WorldID=@5", X, Y, width,
+                int q = database.Query("UPDATE ss_tsRegions SET X1 = @0, Y1 = @1, width = @2, height = @3 WHERE RegionName = @4 AND WorldID=@5", X, Y, width,
 						height, regionName, Main.worldID.ToString());
 				if (q > 0)
 					return true;
@@ -320,7 +320,7 @@ namespace TShockAPI.DB
 			{
 				r.RemoveID(TShock.Users.GetUserID(userName));
 				string ids = string.Join(",", r.AllowedIDs);
-				int q = database.Query("UPDATE Regions SET UserIds=@0 WHERE RegionName=@1 AND WorldID=@2", ids,
+                int q = database.Query("UPDATE ss_tsRegions SET UserIds=@0 WHERE RegionName=@1 AND WorldID=@2", ids,
 									   regionName, Main.worldID.ToString());
 				if (q > 0)
 					return true;
@@ -334,7 +334,7 @@ namespace TShockAPI.DB
 			{
 				string mergedIDs = string.Empty;
 				using (
-					var reader = database.QueryReader("SELECT UserIds FROM Regions WHERE RegionName=@0 AND WorldID=@1", regionName,
+                    var reader = database.QueryReader("SELECT UserIds FROM ss_tsRegions WHERE RegionName=@0 AND WorldID=@1", regionName,
 													  Main.worldID.ToString()))
 				{
 					if (reader.Read())
@@ -352,7 +352,7 @@ namespace TShockAPI.DB
 				else
 					mergedIDs = string.Concat(mergedIDs, ",", userIdToAdd);
 
-				int q = database.Query("UPDATE Regions SET UserIds=@0 WHERE RegionName=@1 AND WorldID=@2", mergedIDs,
+                int q = database.Query("UPDATE ss_tsRegions SET UserIds=@0 WHERE RegionName=@1 AND WorldID=@2", mergedIDs,
 									   regionName, Main.worldID.ToString());
 				foreach (var r in Regions)
 				{
@@ -384,7 +384,7 @@ namespace TShockAPI.DB
 				Region region = Regions.First(r => String.Equals(regionName, r.Name, StringComparison.OrdinalIgnoreCase));
 				region.Area = new Rectangle(x, y, width, height);
 
-				if (database.Query("UPDATE Regions SET X1 = @0, Y1 = @1, width = @2, height = @3 WHERE RegionName = @4 AND WorldID = @5",
+                if (database.Query("UPDATE ss_tsRegions SET X1 = @0, Y1 = @1, width = @2, height = @3 WHERE RegionName = @4 AND WorldID = @5",
 					x, y, width, height, regionName, Main.worldID.ToString()) > 0)
 					return true;
 			}
@@ -405,7 +405,7 @@ namespace TShockAPI.DB
 			var regions = new List<Region>();
 			try
 			{
-				using (var reader = database.QueryReader("SELECT RegionName FROM Regions WHERE WorldID=@0", worldid))
+                using (var reader = database.QueryReader("SELECT RegionName FROM ss_tsRegions WHERE WorldID=@0", worldid))
 				{
 					while (reader.Read())
 						regions.Add(new Region {Name = reader.Get<string>("RegionName")});
@@ -429,7 +429,7 @@ namespace TShockAPI.DB
 			if (region != null)
 			{
 				region.Owner = newOwner;
-				int q = database.Query("UPDATE Regions SET Owner=@0 WHERE RegionName=@1 AND WorldID=@2", newOwner,
+                int q = database.Query("UPDATE ss_tsRegions SET Owner=@0 WHERE RegionName=@1 AND WorldID=@2", newOwner,
 									   regionName, Main.worldID.ToString());
 				if (q > 0)
 					return true;
@@ -441,7 +441,7 @@ namespace TShockAPI.DB
 		{
 			string mergedGroups = "";
 			using (
-				var reader = database.QueryReader("SELECT Groups FROM Regions WHERE RegionName=@0 AND WorldID=@1", regionName,
+                var reader = database.QueryReader("SELECT Groups FROM ss_tsRegions WHERE RegionName=@0 AND WorldID=@1", regionName,
 												  Main.worldID.ToString()))
 			{
 				if (reader.Read())
@@ -457,7 +457,7 @@ namespace TShockAPI.DB
 				mergedGroups += ",";
 			mergedGroups += groupName;
 
-			int q = database.Query("UPDATE Regions SET Groups=@0 WHERE RegionName=@1 AND WorldID=@2", mergedGroups,
+            int q = database.Query("UPDATE ss_tsRegions SET Groups=@0 WHERE RegionName=@1 AND WorldID=@2", mergedGroups,
 								   regionName, Main.worldID.ToString());
 
 			Region r = GetRegionByName(regionName);
@@ -480,7 +480,7 @@ namespace TShockAPI.DB
 			{
 				r.RemoveGroup(group);
 				string groups = string.Join(",", r.AllowedGroups);
-				int q = database.Query("UPDATE Regions SET Groups=@0 WHERE RegionName=@1 AND WorldID=@2", groups,
+                int q = database.Query("UPDATE ss_tsRegions SET Groups=@0 WHERE RegionName=@1 AND WorldID=@2", groups,
 									   regionName, Main.worldID.ToString());
 				if (q > 0)
 					return true;
@@ -508,7 +508,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("UPDATE Regions SET Z=@0 WHERE RegionName=@1 AND WorldID=@2", z, name,
+                database.Query("UPDATE ss_tsRegions SET Z=@0 WHERE RegionName=@1 AND WorldID=@2", z, name,
 							   Main.worldID.ToString());
 
 				var region = GetRegionByName(name);

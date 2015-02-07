@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("RememberedPos",
+			var table = new SqlTable("ss_tsRememberedPos",
 			                         new SqlColumn("Name", MySqlDbType.VarChar, 50) {Primary = true},
 			                         new SqlColumn("IP", MySqlDbType.Text),
 			                         new SqlColumn("X", MySqlDbType.Int32),
@@ -49,7 +49,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM RememberedPos WHERE Name=@0", name))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsRememberedPos WHERE Name=@0", name))
 				{
 					if (reader.Read())
 					{
@@ -78,7 +78,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM RememberedPos WHERE Name=@0 AND IP=@1 AND WorldID=@2", name, IP, Main.worldID.ToString()))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsRememberedPos WHERE Name=@0 AND IP=@1 AND WorldID=@2", name, IP, Main.worldID.ToString()))
 				{
 					if (reader.Read())
 					{
@@ -101,7 +101,7 @@ namespace TShockAPI.DB
 				try
 				{
 					if ((X != 0) && ( Y !=0)) //invalid pos!
-					database.Query("INSERT INTO RememberedPos (Name, IP, X, Y, WorldID) VALUES (@0, @1, @2, @3, @4);", name, IP, X, Y , Main.worldID.ToString());
+                        database.Query("INSERT INTO ss_tsRememberedPos (Name, IP, X, Y, WorldID) VALUES (@0, @1, @2, @3, @4);", name, IP, X, Y, Main.worldID.ToString());
 				}
 				catch (Exception ex)
 				{
@@ -113,7 +113,7 @@ namespace TShockAPI.DB
 				try
 				{
 					if ((X != 0) && ( Y !=0)) //invalid pos!
-					database.Query("UPDATE RememberedPos SET X = @0, Y = @1, IP = @2, WorldID = @3 WHERE Name = @4;", X, Y, IP, Main.worldID.ToString(), name);
+                        database.Query("UPDATE ss_tsRememberedPos SET X = @0, Y = @1, IP = @2, WorldID = @3 WHERE Name = @4;", X, Y, IP, Main.worldID.ToString(), name);
 				}
 				catch (Exception ex)
 				{

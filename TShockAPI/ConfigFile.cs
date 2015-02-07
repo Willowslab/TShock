@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -269,10 +269,10 @@ namespace TShockAPI
 		public int MaxDamage = 175;
 
 		[Description("The maximum damage a projectile can inflict.")]
-		public int MaxProjDamage = 175;
+        public int MaxProjDamage = 175;
 
-		[Description("Kicks a user if set to true, if they inflict more damage then the max damage.")]
-		public bool KickOnDamageThresholdBroken = false;
+        [Description("Kicks a user if set to true, if they inflict more damage then the max damage.")]
+        public bool KickOnDamageThresholdBroken = false;
 
 		[Description("Ignores checking to see if player 'can' update a projectile.")]
 		public bool IgnoreProjUpdate = false;

@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ namespace TShockAPI
 
 			CreateIfNot(RulesPath, "Respect the admins!\nDon't use TNT!");
 			CreateIfNot(MotdPath,
-			            "This server is running TShock for Terraria.\n Type /help for a list of commands.\n%255,000,000%Current map: %map%\nCurrent players: %players%");
+			            "Please Korarria Pathc.\n버들서의 버들서버는 Tshock를 이용합니다.\n /help 를 사용하여 명령어 리스트를 볼 수 있습니다.\n%054,120,241%Current map: %map%\n접속중인 플레이어: %players%");
 			CreateIfNot(WhitelistPath);
 			if (File.Exists(ConfigPath))
 			{

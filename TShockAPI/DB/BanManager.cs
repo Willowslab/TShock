@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("Bans",
+			var table = new SqlTable("ss_tsBans",
 			                         new SqlColumn("IP", MySqlDbType.String, 16) {Primary = true},
 			                         new SqlColumn("Name", MySqlDbType.Text),
 									 new SqlColumn("UUID", MySqlDbType.Text),
@@ -64,7 +64,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM Bans WHERE IP=@0", ip))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsBans WHERE IP=@0", ip))
 				{
 					if (reader.Read())
 						return new Ban(reader.Get<string>("IP"), reader.Get<string>("Name"), reader.Get<string>("UUID"), reader.Get<string>("Reason"), reader.Get<string>("BanningUser"), reader.Get<string>("Date"), reader.Get<string>("Expiration"));
@@ -85,7 +85,7 @@ namespace TShockAPI.DB
 			List<Ban> banlist = new List<Ban>();
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM Bans"))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsBans"))
 				{
 					while (reader.Read())
 					{
@@ -115,7 +115,7 @@ namespace TShockAPI.DB
 				var namecol = casesensitive ? "Name" : "UPPER(Name)";
 				if (!casesensitive)
 					name = name.ToUpper();
-				using (var reader = database.QueryReader("SELECT * FROM Bans WHERE " + namecol + "=@0", name))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsBans WHERE " + namecol + "=@0", name))
 				{
 					if (reader.Read())
 						return new Ban(reader.Get<string>("IP"), reader.Get<string>("Name"), reader.Get<string>("UUID"), reader.Get<string>("Reason"), reader.Get<string>("BanningUser"), reader.Get<string>("Date"), reader.Get<string>("Expiration"));
@@ -137,7 +137,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				using (var reader = database.QueryReader("SELECT * FROM Bans WHERE UUID=@0", uuid))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsBans WHERE UUID=@0", uuid))
 				{
 					if (reader.Read())
 						return new Ban(reader.Get<string>("IP"), reader.Get<string>("Name"), reader.Get<string>("UUID"), reader.Get<string>("Reason"), reader.Get<string>("BanningUser"), reader.Get<string>("Date"), reader.Get<string>("Expiration"));
@@ -161,7 +161,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				return database.Query("INSERT INTO Bans (IP, Name, UUID, Reason, BanningUser, Date, Expiration) VALUES (@0, @1, @2, @3, @4, @5, @6);", ip, name, uuid, reason, banner, DateTime.UtcNow.ToString("s"), expiration) != 0;
+                return database.Query("INSERT INTO ss_tsBans (IP, Name, UUID, Reason, BanningUser, Date, Expiration) VALUES (@0, @1, @2, @3, @4, @5, @6);", ip, name, uuid, reason, banner, DateTime.UtcNow.ToString("s"), expiration) != 0;
 			}
 			catch (Exception ex)
 			{
@@ -184,7 +184,7 @@ namespace TShockAPI.DB
 			try
 			{
 				if (!byName)
-					return database.Query("DELETE FROM Bans WHERE IP=@0", match) != 0;
+                    return database.Query("DELETE FROM ss_tsBans WHERE IP=@0", match) != 0;
 
 				var namecol = casesensitive ? "Name" : "UPPER(Name)";
 				return database.Query("DELETE FROM Bans WHERE " + namecol + "=@0", casesensitive ? match : match.ToUpper()) != 0;
@@ -202,7 +202,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				return database.Query("DELETE FROM Bans") != 0;
+                return database.Query("DELETE FROM ss_tsBans") != 0;
 			}
 			catch (Exception ex)
 			{

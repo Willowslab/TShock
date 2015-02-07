@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("GroupList",
+			var table = new SqlTable("ss_tsGroupList",
 			                         new SqlColumn("GroupName", MySqlDbType.VarChar, 32) {Primary = true},
 			                         new SqlColumn("Parent", MySqlDbType.VarChar, 32),
 			                         new SqlColumn("Commands", MySqlDbType.Text),
@@ -143,8 +143,8 @@ namespace TShockAPI.DB
 			}
 
 			string query = (TShock.Config.StorageType.ToLower() == "sqlite")
-							? "INSERT OR IGNORE INTO GroupList (GroupName, Parent, Commands, ChatColor) VALUES (@0, @1, @2, @3);"
-							: "INSERT IGNORE INTO GroupList SET GroupName=@0, Parent=@1, Commands=@2, ChatColor=@3";
+                            ? "INSERT OR IGNORE INTO ss_tsGroupList (GroupName, Parent, Commands, ChatColor) VALUES (@0, @1, @2, @3);"
+                            : "INSERT IGNORE INTO ss_tsGroupList SET GroupName=@0, Parent=@1, Commands=@2, ChatColor=@3";
 			if (database.Query(query, name, parentname, permissions, chatcolor) == 1)
 			{
 				groups.Add(group);
@@ -212,7 +212,7 @@ namespace TShockAPI.DB
 			var newGroup = new Group(name, parent, chatcolor, permissions);
 			newGroup.Prefix = prefix;
 			newGroup.Suffix = suffix;
-			string query = "UPDATE GroupList SET Parent=@0, Commands=@1, ChatColor=@2, Suffix=@3, Prefix=@4 WHERE GroupName=@5";
+            string query = "UPDATE ss_tsGroupList SET Parent=@0, Commands=@1, ChatColor=@2, Suffix=@3, Prefix=@4 WHERE GroupName=@5";
 			if (database.Query(query, parentname, newGroup.Permissions, newGroup.ChatColor, suffix, prefix, name) != 1)
 				throw new GroupManagerException(string.Format("Failed to update group \"{0}\".", name));
 
@@ -239,7 +239,7 @@ namespace TShockAPI.DB
 				return "Error: Group doesn't exist.";
 			}
 
-			if (database.Query("DELETE FROM GroupList WHERE GroupName=@0", name) == 1)
+            if (database.Query("DELETE FROM ss_tsGroupList WHERE GroupName=@0", name) == 1)
 			{
 				groups.Remove(TShock.Utils.GetGroup(name));
 				return "Group " + name + " has been deleted successfully.";
@@ -258,8 +258,8 @@ namespace TShockAPI.DB
 			var group = TShock.Utils.GetGroup(name);
 			var oldperms = group.Permissions; // Store old permissions in case of error
 			permissions.ForEach(p => group.AddPermission(p));
- 
-			if (database.Query("UPDATE GroupList SET Commands=@0 WHERE GroupName=@1", group.Permissions, name) == 1)
+
+            if (database.Query("UPDATE ss_tsGroupList SET Commands=@0 WHERE GroupName=@1", group.Permissions, name) == 1)
 				return "Group " + name + " has been modified successfully.";
 
 			// Restore old permissions so DB and internal object are in a consistent state
@@ -276,7 +276,7 @@ namespace TShockAPI.DB
 			var oldperms = group.Permissions; // Store old permissions in case of error
 			permissions.ForEach(p => group.RemovePermission(p));
 
-			if (database.Query("UPDATE GroupList SET Commands=@0 WHERE GroupName=@1", group.Permissions, name) == 1)
+            if (database.Query("UPDATE ss_tsGroupList SET Commands=@0 WHERE GroupName=@1", group.Permissions, name) == 1)
 				return "Group " + name + " has been modified successfully.";
 	
 			// Restore old permissions so DB and internal object are in a consistent state
@@ -290,7 +290,7 @@ namespace TShockAPI.DB
 			{
 				List<Group> newGroups = new List<Group>(groups.Count);
 				Dictionary<string,string> newGroupParents = new Dictionary<string, string>(groups.Count);
-				using (var reader = database.QueryReader("SELECT * FROM GroupList"))
+                using (var reader = database.QueryReader("SELECT * FROM ss_tsGroupList"))
 				{
 					while (reader.Read())
 					{

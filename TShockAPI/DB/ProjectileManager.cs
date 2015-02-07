@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ namespace TShockAPI.DB
 		{
 			database = db;
 
-			var table = new SqlTable("ProjectileBans",
+			var table = new SqlTable("ss_tsProjectileBans",
 				new SqlColumn("ProjectileID", MySqlDbType.Int32) {Primary = true},
 				new SqlColumn("AllowedGroups", MySqlDbType.Text)
 				);
@@ -49,7 +49,7 @@ namespace TShockAPI.DB
 		{
 			ProjectileBans.Clear();
 
-			using (var reader = database.QueryReader("SELECT * FROM ProjectileBans"))
+            using (var reader = database.QueryReader("SELECT * FROM ss_tsProjectileBans"))
 			{
 				while (reader != null && reader.Read())
 				{
@@ -64,7 +64,7 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-				database.Query("INSERT INTO ProjectileBans (ProjectileID, AllowedGroups) VALUES (@0, @1);",
+                database.Query("INSERT INTO ss_tsProjectileBans (ProjectileID, AllowedGroups) VALUES (@0, @1);",
 					id, "");
 
 				if (!ProjectileIsBanned(id, null))
@@ -82,7 +82,7 @@ namespace TShockAPI.DB
 				return;
 			try
 			{
-				database.Query("DELETE FROM ProjectileBans WHERE ProjectileId=@0;", id);
+                database.Query("DELETE FROM ss_tsProjectileBans WHERE ProjectileId=@0;", id);
 				ProjectileBans.Remove(new ProjectileBan(id));
 			}
 			catch (Exception ex)
@@ -124,7 +124,7 @@ namespace TShockAPI.DB
 					groupsNew += name;
 					b.SetAllowedGroups(groupsNew);
 
-					int q = database.Query("UPDATE ProjectileBans SET AllowedGroups=@0 WHERE ProjectileId=@1", groupsNew,
+                    int q = database.Query("UPDATE ss_tsProjectileBans SET AllowedGroups=@0 WHERE ProjectileId=@1", groupsNew,
 						id);
 
 					return q > 0;
@@ -147,7 +147,7 @@ namespace TShockAPI.DB
 				{
 					b.RemoveGroup(group);
 					string groups = string.Join(",", b.AllowedGroups);
-					int q = database.Query("UPDATE ProjectileBans SET AllowedGroups=@0 WHERE ProjectileId=@1", groups,
+                    int q = database.Query("UPDATE ss_tsProjectileBans SET AllowedGroups=@0 WHERE ProjectileId=@1", groups,
 						id);
 
 					if (q > 0)
