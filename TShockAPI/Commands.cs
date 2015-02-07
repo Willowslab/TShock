@@ -520,7 +520,11 @@ namespace TShockAPI
 			add(new Command(Permissions.kill, Kill, "kill")
 			{
 				HelpText = "Kills another player."
-			});
+            });
+            add(new Command(Permissions.kill, Kill, "킬")
+            {
+                HelpText = "Kills another player."
+            });
 			add(new Command(Permissions.cantalkinthird, ThirdPerson, "me")
 			{
 				HelpText = "Sends an action message to everyone."
@@ -4690,7 +4694,7 @@ namespace TShockAPI
 				return;
 			}
 
-			string plStr = String.Join(" ", args.Parameters);
+            string plStr = String.Join(" ", args.Parameters);
 			var players = TShock.Utils.FindPlayer(plStr);
 			if (players.Count == 0)
 			{
@@ -4703,7 +4707,54 @@ namespace TShockAPI
 			else
 			{
 				var plr = players[0];
-				plr.DamagePlayer(999999);
+                //plr.DamagePlayer(999999);
+                string diemsg = "";
+                Random rand = new Random();
+                switch (rand.Next(0, 11))
+                {
+                    case 0:
+                        diemsg = " 기쁨에 겨워 사망했습니다.";
+                        break;
+                    case 1:
+                        diemsg = " 너무 눈이 부셔 사망했습니다.";
+                        break;
+                    case 2:
+                        diemsg = " 죽음을 원했습니다.";
+                        break;
+                    case 3:
+                        diemsg = " 영 좋지 못한 곳에 총알을 맞았습니다.";
+                        break;
+                    case 4:
+                        diemsg = " 병원에 가는 것을 잊어버렸습니다.";
+                        break;
+                    case 5:
+                        diemsg = " 가장 큰 공포를 느낀다는 11미터에서 떨어지는 꿈을 꾸다 죽었습니다.";
+                        break;
+                    case 6:
+                        diemsg = " 범고래에게 집어 삼켜졌습니다.";
+                        break;
+                    case 7:
+                        diemsg = " Boy Next Door 의 마수에 빠졌습니다.";
+                        break;
+                    case 8:
+                        diemsg = " 주머니에 손을 넣은 둥근 안경을 낀 의사를 보더니 죽어버렸습니다.";
+                        break;
+                    case 9:
+                        diemsg = " 소리없이 사라졌습니다.";
+                        break;
+                    case 10:
+                        diemsg = " 러시아에서 배송된 홍차를 마시고 말았습니다.";
+                        break;
+                    case 11:
+                        diemsg = " 그리즐리 베어에게 머리를 뜯겼습니다.";
+                        break;
+                    default:
+                        diemsg = " 백병원에서 눈을 뜨게 되었습니다.";
+                        break;
+                }
+
+                diemsg = TShock.TSKoreanEndParse(plr.Name, 0) + diemsg;
+                NetMessage.SendData((int)PacketTypes.PlayerDamage, -1, -1, diemsg, plr.Index, ((new Random()).Next(-1, 1)), 999999, (float)0);
 				args.Player.SendSuccessMessage(string.Format("You just killed {0}!", plr.Name));
 				plr.SendErrorMessage(string.Format("{0} just killed you!", args.Player.TPlayer.name));
 			}
