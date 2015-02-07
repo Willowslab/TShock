@@ -390,11 +390,14 @@ namespace TShockAPI
                 if(args.Player.Nickname == "")
                 {
                     args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
+                    Console.WriteLine("Nickname Up-to-date Login");
                 }
 
                 if (args.Player.Nickname != "")
                 {
+                    Console.WriteLine("Nickname BroadCast Login");
                     Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
+                    NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, Main.player[args.Player.TPlayer.whoAmi].name, args.Player.TPlayer.whoAmi, 0, 0, 0, 0);
                 }
                 args.Player.titlePrefixReload();
             }
@@ -417,11 +420,14 @@ namespace TShockAPI
                 if (args.Player.Nickname == "")
                 {
                     args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
+                    Console.WriteLine("Nickname Up-to-date PreLogin");
                 }
 
                 if (args.Player.Nickname != "")
                 {
+                    Console.WriteLine("Nickname BroadCast PreLogin");
                     Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
+                    NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, Main.player[args.Player.TPlayer.whoAmi].name, args.Player.TPlayer.whoAmi, 0, 0, 0, 0);
                 }
                 args.Player.titlePrefixReload();
             }
