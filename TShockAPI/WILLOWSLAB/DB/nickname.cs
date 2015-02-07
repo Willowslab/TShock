@@ -138,11 +138,12 @@ namespace TShockAPI.DB
             string nickname = "";
             try
             {
-                using (var reader = database.QueryReader("SELECT * FROM ss_user_nickname WHERE Account=@0", UserID))
+                using (var reader = database.QueryReader("SELECT * FROM ss_user_nickname WHERE Account=" + UserID))
                 {
                     if(reader.Read())
                     {
                         nickname = reader.Get<string>("nickname");
+                        Console.WriteLine("[ Nickname] Get : " + nickname);
                     }
                     else
                     {
@@ -153,9 +154,9 @@ namespace TShockAPI.DB
             catch  (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
+                Console.WriteLine(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다. getUserNickname Error");
                 Console.WriteLine(" [ Nickname ] " + ex.GetBaseException().ToString());
-                TShockAPI.Log.Error(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
+                TShockAPI.Log.Error(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다. getUserNickname Error");
                 Console.ForegroundColor = ConsoleColor.Gray;
             }
             return nickname;
@@ -184,13 +185,6 @@ namespace TShockAPI.DB
                                     //player.SendInfoMessage("홈페이지에서 닉네임을 설정할 수 있게 되었습니다.");
                                 }
                             }
-                            else
-                            {
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
-                                TShockAPI.Log.Error(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
-                                Console.ForegroundColor = ConsoleColor.Gray;
-                            }
                         }
                     }
                 }
@@ -198,9 +192,9 @@ namespace TShockAPI.DB
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
+                Console.WriteLine(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다. initUserNickname Error");
                 Console.WriteLine(" [ Nickname ] " + ex.Message);
-                TShockAPI.Log.Error(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다.");
+                TShockAPI.Log.Error(" [ Nickname ] 회원의 데이터베이스를 가져오는 데 오류가 발생했습니다. initUserNickname Error");
                 Console.ForegroundColor = ConsoleColor.Gray;
             }
         }

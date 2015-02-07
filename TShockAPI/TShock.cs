@@ -387,13 +387,16 @@ namespace TShockAPI
 
             try
             {
-                args.Player.titlePrefixReload();
-            }
-            catch { }
+                if(args.Player.Nickname == "")
+                {
+                    args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
+                }
 
-            try
-            {
-                Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Name;
+                if (args.Player.Nickname != "")
+                {
+                    Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
+                }
+                args.Player.titlePrefixReload();
             }
             catch { }
 	    }
@@ -407,7 +410,22 @@ namespace TShockAPI
 			{
 				args.Player.SendErrorMessage("Attempting to bypass SSC with item in hand.");
 				args.Handled = true;
-			}
+            }
+
+            try
+            {
+                if (args.Player.Nickname == "")
+                {
+                    args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
+                }
+
+                if (args.Player.Nickname != "")
+                {
+                    Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
+                }
+                args.Player.titlePrefixReload();
+            }
+            catch { }
 		}
 
 		private void NetHooks_NameCollision(NameCollisionEventArgs args)
@@ -1116,7 +1134,6 @@ namespace TShockAPI
 
 		private void OnChat(ServerChatEventArgs args)
 		{
-            NickName.titleprefixload();
 			if (args.Handled)
 				return;
 

@@ -443,12 +443,21 @@ namespace TShockAPI
 		public string Name
 		{
 			get
-            { return this.TPlayer.name; }
+            { 
+                if(this.Nickname.Trim() != "")
+                {
+                    return this.Nickname;
+                }
+                else
+                {
+                    return this.TPlayer.name; 
+                }
+            }
 		}
 
         public void setNickname(string nickname)
         {
-            if(!nickname.Equals(""))
+            if(!nickname.Trim().Equals(""))
             {
                 this.Nickname = nickname;
                 this.isSetNickname = true;
