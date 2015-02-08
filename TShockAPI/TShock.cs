@@ -387,13 +387,13 @@ namespace TShockAPI
 
             try
             {
-                if(args.Player.Nickname == "")
+                if (args.Player.Nickname == "" && args.Player.UserID > 0)
                 {
                     args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
                     Console.WriteLine("Nickname Up-to-date Login");
                 }
 
-                if (args.Player.Nickname != "")
+                if (args.Player.Nickname != "" && args.Player.UserID > 0)
                 {
                     Console.WriteLine("Nickname BroadCast Login");
                     Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
@@ -417,13 +417,13 @@ namespace TShockAPI
 
             try
             {
-                if (args.Player.Nickname == "")
+                if (args.Player.Nickname == "" && args.Player.UserID > 0)
                 {
                     args.Player.setNickname(NickName.getUserNickname(args.Player.UserID, args.Player.Name));
                     Console.WriteLine("Nickname Up-to-date PreLogin");
                 }
 
-                if (args.Player.Nickname != "")
+                if (args.Player.Nickname != "" && args.Player.UserID > 0)
                 {
                     Console.WriteLine("Nickname BroadCast PreLogin");
                     Main.player[args.Player.TPlayer.whoAmi].name = args.Player.Nickname;
@@ -728,16 +728,14 @@ namespace TShockAPI
 		private void OnSecondUpdate()
         {
             if(Config.ForceTime != "normal")
+            switch (Config.ForceTime)
             {
-                switch (Config.ForceTime)
-                {
-                    case "day":
-                        TSPlayer.Server.SetTime(true, 27000.0);
-                        break;
-                    case "night":
-                        TSPlayer.Server.SetTime(false, 16200.0);
-                        break;
-                }
+                case "day":
+                    TSPlayer.Server.SetTime(true, 27000.0);
+                    break;
+                case "night":
+                    TSPlayer.Server.SetTime(false, 16200.0);
+                    break;
             }
 
 			foreach (TSPlayer player in Players)

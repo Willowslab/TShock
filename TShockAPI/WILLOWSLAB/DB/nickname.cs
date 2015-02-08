@@ -136,14 +136,16 @@ namespace TShockAPI.DB
         public string getUserNickname(int UserID, string Name)
         {
             string nickname = "";
+            if (UserID < 0)
+                return "";
             try
             {
-                using (var reader = database.QueryReader("SELECT * FROM ss_user_nickname WHERE Account=" + UserID))
+                using (var reader = database.QueryReader("SELECT * FROM ss_user_nickname WHERE Account = " + UserID))
                 {
                     if(reader.Read())
                     {
                         nickname = reader.Get<string>("nickname");
-                        Console.WriteLine("[ Nickname] Get : " + nickname);
+                        Console.WriteLine("[ Nickname ] Get : " + nickname);
                     }
                     else
                     {

@@ -436,6 +436,7 @@ namespace TShockAPI
 
         public bool isSetNickname = false;
         public string Nickname = "";
+        public bool forcedKill = false;
 
         /// <summary>
         /// 이름을 반환하는 함수입니다.
