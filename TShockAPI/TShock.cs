@@ -727,15 +727,19 @@ namespace TShockAPI
 
 		private void OnSecondUpdate()
         {
-            switch (Config.ForceTime)
+            if(Config.ForceTime != "normal")
             {
-                case "day":
-                    TSPlayer.Server.SetTime(true, 27000.0);
-                    break;
-                case "night":
-                    TSPlayer.Server.SetTime(false, 16200.0);
-                    break;
+                switch (Config.ForceTime)
+                {
+                    case "day":
+                        TSPlayer.Server.SetTime(true, 27000.0);
+                        break;
+                    case "night":
+                        TSPlayer.Server.SetTime(false, 16200.0);
+                        break;
+                }
             }
+
 			foreach (TSPlayer player in Players)
 			{
 				if (player != null && player.Active)
