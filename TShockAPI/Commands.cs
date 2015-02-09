@@ -1,6 +1,6 @@
 ﻿/*
 TShock, a server mod for Terraria
-Copyright (C) 2011-2014 Nyx Studios (fka. The TShock Team)
+Copyright (C) 2011-2015 Nyx Studios (fka. The TShock Team)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -302,6 +302,10 @@ namespace TShockAPI
             {
                 HelpText = "Checks for TShock updates."
             });
+            add(new Command(Permissions.maintenance, titleprefixload, "tpreload")
+            {
+                HelpText = "tpreload."
+            });
             add(new Command(Permissions.maintenance, Off, "off", "exit")
             {
                 HelpText = "Shuts down the server while saving."
@@ -589,7 +593,6 @@ namespace TShockAPI
             {
                 HelpText = "Shows the server's rules."
             });
-
             TShockCommands = new ReadOnlyCollection<Command>(tshockCommands);
         }
 
@@ -640,6 +643,11 @@ namespace TShockAPI
                 }
             }
             return true;
+        }
+
+        private static void titleprefixload(CommandArgs Args)
+        {
+            TShock.NickName.titleprefixload();
         }
 
         /// <summary>
