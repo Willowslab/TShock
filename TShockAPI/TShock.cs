@@ -1217,11 +1217,11 @@ namespace TShockAPI
                         //act A
                         Player ply = Main.player[args.Who];
                         string name = ply.name;
-                        string prefix = tsplr.prefix;
-                        string title = tsplr.title;
+                        //string prefix = tsplr.prefix;
+                        //string title = tsplr.title;
 
                         NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL", args.Who, 0, 0, 0, 0);
-                        string nickname = prefix + title + tsplr.Name;
+                        string nickname = tsplr.Name;
 
                         var text = nickname + " : " + args.Text;
                         Hooks.PlayerHooks.OnPlayerChat(tsplr, args.Text, ref text);
