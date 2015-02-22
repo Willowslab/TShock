@@ -542,8 +542,8 @@ namespace TShockAPI
         public void titlePrefixReload()
         {
             this.Nickname = TShock.NickName.getUserNickname(UserID, TPlayer.name);
-            //this.title = TShock.NickName.getTitle(this.UserID);
-            //this.prefix = TShock.NickName.getPrefix(this.UserID);
+            this.title = TShock.NickName.getTitle(this.UserID);
+            this.prefix = TShock.NickName.getPrefix(this.UserID);
         }
 
 		public virtual void Disconnect(string reason)
