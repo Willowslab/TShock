@@ -1220,7 +1220,21 @@ namespace TShockAPI
                         //string prefix = tsplr.prefix;
                         //string title = tsplr.title;
 
-                        NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL", args.Who, 0, 0, 0, 0);
+                        if(tsplr.Group.Name == "superadmin")
+                        {
+                            if(tsplr.UserID == 1)
+                            {
+                                NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL_OP", args.Who, 0, 0, 0, 0);
+                            }
+                            else
+                            {
+                                NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL_MD", args.Who, 0, 0, 0, 0);
+                            }
+                        }
+                        else
+                        {
+                            NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, "LOCAL", args.Who, 0, 0, 0, 0);
+                        }
                         string nickname = tsplr.Name;
 
                         var text = nickname + " : " + args.Text;

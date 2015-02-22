@@ -50,5 +50,5 @@ using System.Runtime.InteropServices;
 //      Starting in version 4.2.5, we are no longer including the fourth decimal
 //      location, which previously held the date and time.
 
-[assembly: AssemblyVersion("4.2.5")]
-[assembly: AssemblyFileVersion("4.2.5")]
+[assembly: AssemblyVersion("4.2.6")]
+[assembly: AssemblyFileVersion("4.2.6")]

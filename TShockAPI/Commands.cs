@@ -396,10 +396,10 @@ namespace TShockAPI
             });
             #endregion
             #region TP Commands
-            add(new Command(Permissions.spawn, Spawn, "spawn")
+            add(new Command(Spawn, "spawn")
             {
                 AllowServer = false,
-                HelpText = "Sends you to the world's spawn point."
+                HelpText = "월드에 지정된 부활 지점으로 이동합니다."
             });
             add(new Command(Permissions.tp, TP, "tp")
             {
@@ -2004,13 +2004,13 @@ namespace TShockAPI
         private static void Home(CommandArgs args)
         {
             args.Player.Spawn();
-            args.Player.SendSuccessMessage("부활 지점으로 이동했습니다.");
+            args.Player.SendSuccessMessage("자신이 지정한 부활 지점으로 이동했습니다.");
         }
 
         private static void Spawn(CommandArgs args)
         {
             if (args.Player.Teleport(Main.spawnTileX * 16, (Main.spawnTileY * 16) - 48))
-                args.Player.SendSuccessMessage("Teleported to the map's spawnpoint.");
+                args.Player.SendSuccessMessage("월드에 지정된 부활 지점으로 이동했습니다.");
         }
 
         private static void TP(CommandArgs args)
@@ -2420,6 +2420,11 @@ namespace TShockAPI
 
         private static void Group(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             string subCmd = args.Parameters.Count == 0 ? "help" : args.Parameters[0].ToLower();
 
             switch (subCmd)
@@ -2824,6 +2829,11 @@ namespace TShockAPI
 
         private static void ItemBan(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             string subCmd = args.Parameters.Count == 0 ? "help" : args.Parameters[0].ToLower();
             switch (subCmd)
             {
@@ -3021,6 +3031,11 @@ namespace TShockAPI
 
         private static void ProjectileBan(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             string subCmd = args.Parameters.Count == 0 ? "help" : args.Parameters[0].ToLower();
             switch (subCmd)
             {
@@ -3190,6 +3205,11 @@ namespace TShockAPI
         #region Tile Management
         private static void TileBan(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             string subCmd = args.Parameters.Count == 0 ? "help" : args.Parameters[0].ToLower();
             switch (subCmd)
             {
@@ -4774,6 +4794,11 @@ namespace TShockAPI
 
         private static void Butcher(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             if (args.Parameters.Count > 1)
             {
                 args.Player.SendErrorMessage("명령어가 잘못되었습니다. 다음과 같이 해주세요: /butcher [mob type]");
@@ -4891,6 +4916,21 @@ namespace TShockAPI
                 }
             }
 
+            bool exc = true;
+            if(args.Player.UserID != 1)
+            {
+                if (item.accessory) exc = false;
+                if (item.headSlot > 0) exc = false;
+                if (item.bodySlot > 0) exc = false;
+                if (item.legSlot > 0) exc = false;
+                if (item.magic) exc = false;
+                if (item.summon) exc = false;
+                if (item.ranged) exc = false;
+                if (item.melee) exc = false;
+                if (item.noMelee) exc = false;
+                if (item.bait > 0) exc = false;
+            }
+
             if (args.Player.InventorySlotAvailable || (item.type > 70 && item.type < 75) || item.ammo > 0 || item.type == 58 || item.type == 184)
             {
                 if (itemAmount == 0 || itemAmount > item.maxStack)
@@ -4901,14 +4941,14 @@ namespace TShockAPI
                     prefixId = 0;
                 }
 
-                if (args.Player.GiveItemCheck(item.type, item.name, item.width, item.height, itemAmount, prefixId))
+                if (exc && args.Player.GiveItemCheck(item.type, item.name, item.width, item.height, itemAmount, prefixId))
                 {
                     item.prefix = (byte)prefixId;
                     args.Player.SendSuccessMessage("Gave {0} {1}(s).", itemAmount, item.AffixName());
                 }
                 else
                 {
-                    args.Player.SendErrorMessage("You cannot spawn banned items.");
+                    args.Player.SendErrorMessage("허가되지 않은 아이템을 소환하려고 했습니다!");
                 }
             }
             else
@@ -4970,6 +5010,12 @@ namespace TShockAPI
 
         private static void Give(CommandArgs args)
         {
+            if(args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
+
             if (args.Parameters.Count < 2)
             {
                 args.Player.SendErrorMessage(
@@ -5109,6 +5155,11 @@ namespace TShockAPI
 
         private static void Buff(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             if (args.Parameters.Count < 1 || args.Parameters.Count > 2)
             {
                 args.Player.SendErrorMessage("명령어가 잘못되었습니다. 다음과 같이 해주세요: /buff <buff id/name> [time(seconds)]");
@@ -5147,6 +5198,11 @@ namespace TShockAPI
 
         private static void GBuff(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             if (args.Parameters.Count < 2 || args.Parameters.Count > 3)
             {
                 args.Player.SendErrorMessage("명령어가 잘못되었습니다. 다음과 같이 해주세요: /gbuff <player> <buff id/name> [time(seconds)]");
@@ -5203,6 +5259,11 @@ namespace TShockAPI
 
         private static void Grow(CommandArgs args)
         {
+            if (args.Player.UserID != 1)
+            {
+                args.Player.SendMessage("<SYSTEM> : 당신은 이 명령어를 사용할 최종적인 권한이 없습니다.", 255, 128, 128);
+                return;
+            }
             if (args.Parameters.Count != 1)
             {
                 args.Player.SendErrorMessage("명령어가 잘못되었습니다. 다음과 같이 해주세요: /grow <tree/epictree/mushroom/cactus/herb>");
