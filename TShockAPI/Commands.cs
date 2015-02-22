@@ -80,6 +80,7 @@ namespace TShockAPI
         /// Gets or sets an extended description of this command.
         /// </summary>
         public string[] HelpDesc { get; set; }
+<<<<<<< HEAD
         /// <summary>
         /// Gets the name of the command.
         /// </summary>
@@ -92,6 +93,1071 @@ namespace TShockAPI
         /// Gets the permissions of the command.
         /// </summary>
         public List<string> Permissions { get; protected set; }
+=======
+		/// <summary>
+		/// Gets the name of the command.
+		/// </summary>
+		public string Name { get { return Names[0]; } }
+		/// <summary>
+		/// Gets the names of the command.
+		/// </summary>
+		public List<string> Names { get; protected set; }
+		/// <summary>
+		/// Gets the permissions of the command.
+		/// </summary>
+		public List<string> Permissions { get; protected set; }
+
+		private CommandDelegate commandDelegate;
+		public CommandDelegate CommandDelegate
+		{
+			get { return commandDelegate; }
+			set
+			{
+				if (value == null)
+					throw new ArgumentNullException();
+
+				commandDelegate = value;
+			}
+	 	}
+
+		public Command(List<string> permissions, CommandDelegate cmd, params string[] names)
+			: this(cmd, names)
+		{
+			Permissions = permissions;
+		}
+
+		public Command(string permissions, CommandDelegate cmd, params string[] names)
+			: this(cmd, names)
+		{
+			Permissions = new List<string> { permissions };
+		}
+
+		public Command(CommandDelegate cmd, params string[] names)
+		{
+			if (cmd == null)
+				throw new ArgumentNullException("cmd");
+			if (names == null || names.Length < 1)
+				throw new ArgumentException("names");
+
+			AllowServer = true;
+			CommandDelegate = cmd;
+			DoLog = true;
+			HelpText = "No help available.";
+            HelpDesc = null;
+			Names = new List<string>(names);
+			Permissions = new List<string>();
+		}
+
+		public bool Run(string msg, TSPlayer ply, List<string> parms)
+		{
+			if (!CanRun(ply))
+				return false;
+
+			try
+			{
+				CommandDelegate(new CommandArgs(msg, ply, parms));
+			}
+			catch (Exception e)
+			{
+				ply.SendErrorMessage("Command failed, check logs for more details.");
+				Log.Error(e.ToString());
+			}
+
+			return true;
+		}
+
+		public bool HasAlias(string name)
+		{
+			return Names.Contains(name);
+		}
+
+		public bool CanRun(TSPlayer ply)
+		{
+			if (Permissions == null || Permissions.Count < 1)
+				return true;
+			foreach (var Permission in Permissions)
+			{
+				if (ply.Group.HasPermission(Permission))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	public static class Commands
+	{
+		public static List<Command> ChatCommands = new List<Command>();
+		public static ReadOnlyCollection<Command> TShockCommands = new ReadOnlyCollection<Command>(new List<Command>());
+
+		private delegate void AddChatCommand(string permission, CommandDelegate command, params string[] names);
+
+		public static void InitCommands()
+		{
+			List<Command> tshockCommands = new List<Command>(100);
+			Action<Command> add = (cmd) => 
+			{
+				tshockCommands.Add(cmd);
+				ChatCommands.Add(cmd);
+			};
+
+			add(new Command(AuthToken, "auth")
+			{
+				AllowServer = false,
+				HelpText = "Used to authenticate as superadmin when first setting up TShock."
+			});
+			add(new Command(Permissions.authverify, AuthVerify, "auth-verify")
+			{
+				HelpText = "Used to verify that you have correctly set up TShock."
+			});
+			add(new Command(Permissions.user, ManageUsers, "user")
+			{
+				DoLog = false,
+				HelpText = "Manages user accounts."
+			});
+
+			#region Account Commands
+			add(new Command(Permissions.canlogin, AttemptLogin, "login")
+			{
+				AllowServer = false,
+				DoLog = false,
+				HelpText = "Logs you into an account."
+			});
+			add(new Command(Permissions.canchangepassword, PasswordUser, "password")
+			{
+				AllowServer = false,
+				DoLog = false,
+				HelpText = "Changes your account's password."
+			});
+			add(new Command(Permissions.canregister, RegisterUser, "register")
+			{
+				AllowServer = false,
+				DoLog = false,
+				HelpText = "Registers you an account."
+			});
+			#endregion
+			#region Admin Commands
+			add(new Command(Permissions.ban, Ban, "ban")
+			{
+				HelpText = "Manages player bans."
+			});
+			add(new Command(Permissions.broadcast, Broadcast, "broadcast", "bc", "say")
+			{
+				HelpText = "Broadcasts a message to everyone on the server."
+			});
+			add(new Command(Permissions.logs, DisplayLogs, "displaylogs")
+			{
+				HelpText = "Toggles whether you receive server logs."
+			});
+			add(new Command(Permissions.managegroup, Group, "group")
+			{
+				HelpText = "Manages groups."
+			});
+			add(new Command(Permissions.manageitem, ItemBan, "itemban")
+			{
+				HelpText = "Manages item bans."
+			});
+            add(new Command(Permissions.manageprojectile, ProjectileBan, "projban")
+            {
+                HelpText = "Manages projectile bans."
+            });
+			add(new Command(Permissions.managetile, TileBan, "tileban")
+			{
+				HelpText = "Manages tile bans."
+			});
+			add(new Command(Permissions.manageregion, Region, "region")
+			{
+				HelpText = "Manages regions."
+			});
+			add(new Command(Permissions.kick, Kick, "kick")
+			{
+				HelpText = "Removes a player from the server."
+			});
+			add(new Command(Permissions.mute, Mute, "mute", "unmute")
+			{
+				HelpText = "Prevents a player from talking."
+			});
+			add(new Command(Permissions.savessc, OverrideSSC, "overridessc", "ossc")
+			{
+				HelpText = "Overrides serverside characters for a player, temporarily."
+			});
+			add(new Command(Permissions.savessc, SaveSSC, "savessc")
+			{
+				HelpText = "Saves all serverside characters."
+			});
+			add(new Command(Permissions.settempgroup, TempGroup, "tempgroup")
+			{
+				HelpText = "Temporarily sets another player's group."
+			});
+			add(new Command(Permissions.userinfo, GrabUserUserInfo, "userinfo", "ui")
+			{
+				HelpText = "Shows information about a user."
+			});
+			#endregion
+			#region Annoy Commands
+			add(new Command(Permissions.annoy, Annoy, "annoy")
+			{
+				HelpText = "Annoys a player for an amount of time."
+			});
+			add(new Command(Permissions.annoy, Confuse, "confuse")
+			{
+				HelpText = "Confuses a player for an amount of time."
+			});
+			add(new Command(Permissions.annoy, Rocket, "rocket")
+			{
+				HelpText = "Rockets a player upwards. Requires SSC."
+			});
+			add(new Command(Permissions.annoy, FireWork, "firework")
+			{
+				HelpText = "Spawns fireworks at a player."
+			});
+			#endregion
+			#region Configuration Commands
+			add(new Command(Permissions.maintenance, CheckUpdates, "checkupdates")
+			{
+				HelpText = "Checks for TShock updates."
+			});
+			add(new Command(Permissions.maintenance, Off, "off", "exit")
+			{
+				HelpText = "Shuts down the server while saving."
+			});
+			add(new Command(Permissions.maintenance, OffNoSave, "off-nosave", "exit-nosave")
+			{
+				HelpText = "Shuts down the server without saving."
+			});
+			add(new Command(Permissions.maintenance, Reload, "reload")
+			{
+				HelpText = "Reloads the server configuration file."
+			});
+			add(new Command(Permissions.maintenance, Restart, "restart")
+			{
+				HelpText = "Restarts the server."
+			});
+			add(new Command(Permissions.cfgpassword, ServerPassword, "serverpassword")
+			{
+				HelpText = "Changes the server password."
+			});
+			add(new Command(Permissions.maintenance, GetVersion, "version")
+			{
+				HelpText = "Shows the TShock version."
+			});
+			/* Does nothing atm.
+			 * 
+			 * add(new Command(Permissions.updateplugins, UpdatePlugins, "updateplugins")
+			{
+			});*/
+			add(new Command(Permissions.whitelist, Whitelist, "whitelist")
+			{
+				HelpText = "Manages the server whitelist."
+			});
+			#endregion
+			#region Item Commands
+			add(new Command(Permissions.item, Give, "give", "g")
+			{
+				HelpText = "Gives another player an item."
+			});
+			add(new Command(Permissions.item, Item, "item", "i")
+			{
+				AllowServer = false,
+				HelpText = "Gives yourself an item."
+			});
+			#endregion
+			#region NPC Commands
+			add(new Command(Permissions.butcher, Butcher, "butcher")
+			{
+				HelpText = "Kills hostile NPCs or NPCs of a certain type."
+			});
+			add(new Command(Permissions.renamenpc, RenameNPC, "renamenpc")
+			{
+				HelpText = "Renames an NPC."
+			});
+			add(new Command(Permissions.invade, Invade, "invade")
+			{
+				HelpText = "Starts an NPC invasion."
+			});
+			add(new Command(Permissions.maxspawns, MaxSpawns, "maxspawns")
+			{
+				HelpText = "Sets the maximum number of NPCs."
+			});
+			add(new Command(Permissions.spawnboss, SpawnBoss, "spawnboss", "sb")
+			{
+				AllowServer = false,
+				HelpText = "Spawns a number of bosses around you."
+			});
+			add(new Command(Permissions.spawnmob, SpawnMob, "spawnmob", "sm")
+			{
+				AllowServer = false,
+				HelpText = "Spawns a number of mobs around you."
+			});
+			add(new Command(Permissions.spawnrate, SpawnRate, "spawnrate")
+			{
+				HelpText = "Sets the spawn rate of NPCs."
+			});
+			add(new Command(Permissions.invade, PumpkinMoon, "pumpkinmoon", "pmoon")
+			{
+				HelpText = "Starts a Pumpkin Moon at the specified wave."
+			});
+			add(new Command(Permissions.invade, FrostMoon, "frostmoon", "fmoon")
+			{
+				HelpText = "Starts a Frost Moon at the specified wave."
+			});
+			add(new Command(Permissions.clearangler, ClearAnglerQuests, "clearangler")
+			{
+				HelpText = "Resets the list of users who have completed an angler quest that day."
+			});
+			#endregion
+			#region TP Commands
+			add(new Command(Permissions.home, Home, "home")
+			{
+				AllowServer = false,
+				HelpText = "Sends you to your spawn point."
+			});
+			add(new Command(Permissions.spawn, Spawn, "spawn")
+			{
+				AllowServer = false,
+				HelpText = "Sends you to the world's spawn point."
+			});
+			add(new Command(Permissions.tp, TP, "tp")
+			{
+				AllowServer = false,
+				HelpText = "Teleports a player to another player."
+			});
+			add(new Command(Permissions.tpothers, TPHere, "tphere")
+			{
+				AllowServer = false,
+				HelpText = "Teleports a player to yourself."
+			});
+			add(new Command(Permissions.tpnpc, TPNpc, "tpnpc")
+			{
+				AllowServer = false,
+				HelpText = "Teleports you to an npc."
+			});
+			add(new Command(Permissions.tppos, TPPos, "tppos")
+			{
+				AllowServer = false,
+				HelpText = "Teleports you to tile coordinates."
+			});
+			add(new Command(Permissions.tpallow, TPAllow, "tpallow")
+			{
+				AllowServer = false,
+				HelpText = "Toggles whether other people can teleport you."
+			});
+			#endregion
+			#region World Commands
+			add(new Command(Permissions.antibuild, ToggleAntiBuild, "antibuild")
+			{
+				HelpText = "Toggles build protection."
+			});
+			add(new Command(Permissions.bloodmoon, Bloodmoon, "bloodmoon")
+			{
+				HelpText = "Sets a blood moon."
+			});
+			add(new Command(Permissions.grow, Grow, "grow")
+			{
+				AllowServer = false,
+				HelpText = "Grows plants at your location."
+			});
+			add(new Command(Permissions.dropmeteor, DropMeteor, "dropmeteor")
+			{
+				HelpText = "Drops a meteor somewhere in the world."
+			});
+			add(new Command(Permissions.eclipse, Eclipse, "eclipse")
+			{
+				HelpText = "Sets an eclipse."
+			});
+			add(new Command(Permissions.halloween, ForceHalloween, "forcehalloween")
+			{
+				HelpText = "Toggles halloween mode (goodie bags, pumpkins, etc)."
+			});
+			add(new Command(Permissions.xmas, ForceXmas, "forcexmas")
+			{
+				HelpText = "Toggles christmas mode (present spawning, santa, etc)."
+			});
+			add(new Command(Permissions.fullmoon, Fullmoon, "fullmoon")
+			{
+				HelpText = "Sets a full moon."
+			});
+			add(new Command(Permissions.hardmode, Hardmode, "hardmode")
+			{
+				HelpText = "Toggles the world's hardmode status."
+			});
+			add(new Command(Permissions.editspawn, ProtectSpawn, "protectspawn")
+			{
+				HelpText = "Toggles spawn protection."
+			});
+			add(new Command(Permissions.rain, Rain, "rain")
+			{
+				HelpText = "Toggles the rain."
+			});
+			add(new Command(Permissions.worldsave, Save, "save")
+			{
+				HelpText = "Saves the world file."
+			});
+			add(new Command(Permissions.worldspawn, SetSpawn, "setspawn")
+			{
+				AllowServer = false,
+				HelpText = "Sets the world's spawn point to your location."
+			});
+			add(new Command(Permissions.worldsettle, Settle, "settle")
+			{
+				HelpText = "Forces all liquids to update immediately."
+			});
+			add(new Command(Permissions.time, Time, "time")
+			{
+				HelpText = "Sets the world time."
+			});
+			add(new Command(Permissions.wind, Wind, "wind")
+			{
+				HelpText = "Changes the wind speed."
+			});
+			add(new Command(Permissions.worldinfo, WorldInfo, "world")
+			{
+				HelpText = "Shows information about the current world."
+			});
+			#endregion
+			#region Other Commands
+			add(new Command(Permissions.buff, Buff, "buff")
+			{
+				AllowServer = false,
+				HelpText = "Gives yourself a buff for an amount of time."
+			});
+			add(new Command(Permissions.clear, Clear, "clear")
+			{
+				HelpText = "Clears item drops or projectiles."
+			});
+			add(new Command(Permissions.buffplayer, GBuff, "gbuff", "buffplayer")
+			{
+				HelpText = "Gives another player a buff for an amount of time."
+			});
+			add(new Command(Permissions.godmode, ToggleGodMode, "godmode")
+			{
+				HelpText = "Toggles godmode on a player."
+			});
+			add(new Command(Permissions.heal, Heal, "heal")
+			{
+				HelpText = "Heals a player in HP and MP."
+			});
+			add(new Command(Permissions.kill, Kill, "kill")
+			{
+				HelpText = "Kills another player."
+			});
+			add(new Command(Permissions.cantalkinthird, ThirdPerson, "me")
+			{
+				HelpText = "Sends an action message to everyone."
+			});
+			add(new Command(Permissions.canpartychat, PartyChat, "party", "p")
+			{
+				AllowServer = false,
+				HelpText = "Sends a message to everyone on your team."
+			});
+			add(new Command(Permissions.whisper, Reply, "reply", "r")
+			{
+				HelpText = "Replies to a PM sent to you."
+			});
+			add(new Command(Rests.RestPermissions.restmanage, ManageRest, "rest")
+			{
+				HelpText = "Manages the REST API."
+			});
+			add(new Command(Permissions.slap, Slap, "slap")
+			{
+				HelpText = "Slaps a player, dealing damage."
+			});
+			add(new Command(Permissions.serverinfo, ServerInfo, "stats")
+			{
+				HelpText = "Shows the server information."
+			});
+			add(new Command(Permissions.warp, Warp, "warp")
+			{
+				HelpText = "Teleports you to a warp point or manages warps."
+			});
+			add(new Command(Permissions.whisper, Whisper, "whisper", "w", "tell")
+			{
+				HelpText = "Sends a PM to a player."
+			});
+			#endregion
+
+			add(new Command(Aliases, "aliases")
+			{
+				HelpText = "Shows a command's aliases."
+			});
+			add(new Command(Help, "help")
+			{
+				HelpText = "Lists commands or gives help on them."
+			});
+			add(new Command(Motd, "motd")
+			{
+				HelpText = "Shows the message of the day."
+			});
+			add(new Command(ListConnectedPlayers, "playing", "online", "who")
+			{
+				HelpText = "Shows the currently connected players."
+			});
+			add(new Command(Rules, "rules")
+			{
+				HelpText = "Shows the server's rules."
+			});
+
+			TShockCommands = new ReadOnlyCollection<Command>(tshockCommands);
+		}
+
+		public static bool HandleCommand(TSPlayer player, string text)
+		{
+			string cmdText = text.Remove(0, 1);
+
+			var args = ParseParameters(cmdText);
+			if (args.Count < 1)
+				return false;
+
+			string cmdName = args[0].ToLower();
+			args.RemoveAt(0);
+
+			IEnumerable<Command> cmds = ChatCommands.Where(c => c.HasAlias(cmdName)).ToList();
+
+			if (Hooks.PlayerHooks.OnPlayerCommand(player, cmdName, cmdText, args, ref cmds))
+				return true;
+
+			if (cmds.Count() == 0)
+			{
+				if (player.AwaitingResponse.ContainsKey(cmdName))
+				{
+					Action<CommandArgs> call = player.AwaitingResponse[cmdName];
+					player.AwaitingResponse.Remove(cmdName);
+					call(new CommandArgs(cmdText, player, args));
+					return true;
+				}
+				player.SendErrorMessage("Invalid command entered. Type {0}help for a list of valid commands.", TShock.Config.CommandSpecifier);
+				return true;
+			}
+            foreach (Command cmd in cmds)
+            {
+                if (!cmd.CanRun(player))
+                {
+                    TShock.Utils.SendLogs(string.Format("{0} tried to execute {1}{2}.", player.Name, TShock.Config.CommandSpecifier, cmdText), Color.PaleVioletRed, player);
+                    player.SendErrorMessage("You do not have access to this command.");
+                }
+                else if (!cmd.AllowServer && !player.RealPlayer)
+                {
+                    player.SendErrorMessage("You must use this command in-game.");
+                }
+                else
+                {
+                    if (cmd.DoLog)
+                        TShock.Utils.SendLogs(string.Format("{0} executed: {1}{2}.", player.Name, TShock.Config.CommandSpecifier, cmdText), Color.PaleVioletRed, player);
+                    cmd.Run(cmdText, player, args);
+                }
+            }
+		    return true;
+		}
+
+		/// <summary>
+		/// Parses a string of parameters into a list. Handles quotes.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <returns></returns>
+		private static List<String> ParseParameters(string str)
+		{
+			var ret = new List<string>();
+			var sb = new StringBuilder();
+			bool instr = false;
+			for (int i = 0; i < str.Length; i++)
+			{
+				char c = str[i];
+
+				if (c == '\\' && ++i < str.Length)
+				{
+					if (str[i] != '"' && str[i] != ' ' && str[i] != '\\')
+						sb.Append('\\');
+					sb.Append(str[i]);
+				}
+				else if (c == '"')
+				{
+					instr = !instr;
+					if (!instr)
+					{
+						ret.Add(sb.ToString());
+						sb.Clear();
+					}
+					else if (sb.Length > 0)
+					{
+						ret.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else if (IsWhiteSpace(c) && !instr)
+				{
+					if (sb.Length > 0)
+					{
+						ret.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else
+					sb.Append(c);
+			}
+			if (sb.Length > 0)
+				ret.Add(sb.ToString());
+
+			return ret;
+		}
+
+		private static bool IsWhiteSpace(char c)
+		{
+			return c == ' ' || c == '\t' || c == '\n';
+		}
+
+		#region Account commands
+
+		private static void AttemptLogin(CommandArgs args)
+		{
+			if (args.Player.LoginAttempts > TShock.Config.MaximumLoginAttempts && (TShock.Config.MaximumLoginAttempts != -1))
+			{
+				Log.Warn(String.Format("{0} ({1}) had {2} or more invalid login attempts and was kicked automatically.",
+					args.Player.IP, args.Player.Name, TShock.Config.MaximumLoginAttempts));
+				TShock.Utils.Kick(args.Player, "Too many invalid login attempts.");
+				return;
+			}
+            
+			User user = TShock.Users.GetUserByName(args.Player.Name);
+			string encrPass = "";
+			bool usingUUID = false;
+			if (args.Parameters.Count == 0 && !TShock.Config.DisableUUIDLogin)
+			{
+				if (Hooks.PlayerHooks.OnPlayerPreLogin(args.Player, args.Player.Name, ""))
+					return;
+				user = TShock.Users.GetUserByName(args.Player.Name);
+				usingUUID = true;
+			}
+			else if (args.Parameters.Count == 1)
+			{
+				if (Hooks.PlayerHooks.OnPlayerPreLogin(args.Player, args.Player.Name, args.Parameters[0]))
+					return;
+				user = TShock.Users.GetUserByName(args.Player.Name);
+				encrPass = TShock.Utils.HashPassword(args.Parameters[0]);
+			}
+			else if (args.Parameters.Count == 2 && TShock.Config.AllowLoginAnyUsername)
+			{
+				if (Hooks.PlayerHooks.OnPlayerPreLogin(args.Player, args.Parameters[0], args.Parameters[1]))
+					return;
+
+				user = TShock.Users.GetUserByName(args.Parameters[0]);
+				encrPass = TShock.Utils.HashPassword(args.Parameters[1]);
+				if (String.IsNullOrEmpty(args.Parameters[0]))
+				{
+					args.Player.SendErrorMessage("Bad login attempt.");
+					return;
+				}
+			}
+			else
+			{
+				args.Player.SendErrorMessage("Syntax: /login - Logs in using your UUID and character name");
+				args.Player.SendErrorMessage("        /login <password> - Logs in using your password and character name");
+				args.Player.SendErrorMessage("        /login <username> <password> - Logs in using your username and password");
+				args.Player.SendErrorMessage("If you forgot your password, there is no way to recover it.");
+				return;
+			}
+			try
+			{
+				if (user == null)
+				{
+					args.Player.SendErrorMessage("A user by that name does not exist.");
+				}
+				else if (user.Password.ToUpper() == encrPass.ToUpper() ||
+						(usingUUID && user.UUID == args.Player.UUID && !TShock.Config.DisableUUIDLogin &&
+						!String.IsNullOrWhiteSpace(args.Player.UUID)))
+				{
+					args.Player.PlayerData = TShock.CharacterDB.GetPlayerData(args.Player, TShock.Users.GetUserID(user.Name));
+
+					var group = TShock.Utils.GetGroup(user.Group);
+
+					if (Main.ServerSideCharacter)
+					{
+						if (group.HasPermission(Permissions.bypassssc))
+						{
+							args.Player.IgnoreActionsForClearingTrashCan = false;
+						}
+						args.Player.PlayerData.RestoreCharacter(args.Player);
+					}
+					args.Player.LoginFailsBySsi = false;
+
+					if (group.HasPermission(Permissions.ignorestackhackdetection))
+						args.Player.IgnoreActionsForCheating = "none";
+
+					if (group.HasPermission(Permissions.usebanneditem))
+						args.Player.IgnoreActionsForDisabledArmor = "none";
+
+					args.Player.Group = group;
+					args.Player.tempGroup = null;
+					args.Player.UserAccountName = user.Name;
+					args.Player.UserID = TShock.Users.GetUserID(args.Player.UserAccountName);
+					args.Player.IsLoggedIn = true;
+					args.Player.IgnoreActionsForInventory = "none";
+
+					if (!args.Player.IgnoreActionsForClearingTrashCan && Main.ServerSideCharacter)
+					{
+						args.Player.PlayerData.CopyCharacter(args.Player);
+						TShock.CharacterDB.InsertPlayerData(args.Player);
+					}
+					args.Player.SendSuccessMessage("Authenticated as " + user.Name + " successfully.");
+
+					Log.ConsoleInfo(args.Player.Name + " authenticated successfully as user: " + user.Name + ".");
+					if ((args.Player.LoginHarassed) && (TShock.Config.RememberLeavePos))
+					{
+						if (TShock.RememberedPos.GetLeavePos(args.Player.Name, args.Player.IP) != Vector2.Zero)
+						{
+							Vector2 pos = TShock.RememberedPos.GetLeavePos(args.Player.Name, args.Player.IP);
+							args.Player.Teleport((int) pos.X*16, (int) pos.Y*16);
+						}
+						args.Player.LoginHarassed = false;
+
+					}
+					TShock.Users.SetUserUUID(user, args.Player.UUID);
+
+					Hooks.PlayerHooks.OnPlayerPostLogin(args.Player);
+				}
+				else
+				{
+					if (usingUUID && !TShock.Config.DisableUUIDLogin)
+					{
+						args.Player.SendErrorMessage("UUID does not match this character!");
+					}
+					else
+					{
+						args.Player.SendErrorMessage("Invalid password!");
+					}
+					Log.Warn(args.Player.IP + " failed to authenticate as user: " + user.Name + ".");
+					args.Player.LoginAttempts++;
+				}
+			}
+			catch (Exception ex)
+			{
+				args.Player.SendErrorMessage("There was an error processing your request.");
+				Log.Error(ex.ToString());
+			}
+		}
+
+		private static void PasswordUser(CommandArgs args)
+		{
+			try
+			{
+				if (args.Player.IsLoggedIn && args.Parameters.Count == 2)
+				{
+					var user = TShock.Users.GetUserByName(args.Player.UserAccountName);
+					string encrPass = TShock.Utils.HashPassword(args.Parameters[0]);
+					if (user.Password.ToUpper() == encrPass.ToUpper())
+					{
+						args.Player.SendSuccessMessage("You changed your password!");
+						TShock.Users.SetUserPassword(user, args.Parameters[1]); // SetUserPassword will hash it for you.
+						Log.ConsoleInfo(args.Player.IP + " named " + args.Player.Name + " changed the password of account " + user.Name + ".");
+					}
+					else
+					{
+						args.Player.SendErrorMessage("You failed to change your password!");
+						Log.ConsoleError(args.Player.IP + " named " + args.Player.Name + " failed to change password for account: " +
+										 user.Name + ".");
+					}
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Not logged in or invalid syntax! Proper syntax: /password <oldpassword> <newpassword>");
+				}
+			}
+			catch (UserManagerException ex)
+			{
+				args.Player.SendErrorMessage("Sorry, an error occured: " + ex.Message + ".");
+				Log.ConsoleError("PasswordUser returned an error: " + ex);
+			}
+		}
+
+		private static void RegisterUser(CommandArgs args)
+		{
+			try
+			{
+				var user = new User();
+
+				if (args.Parameters.Count == 1)
+				{
+					user.Name = args.Player.Name;
+					user.Password = args.Parameters[0];
+				}
+				else if (args.Parameters.Count == 2 && TShock.Config.AllowRegisterAnyUsername)
+				{
+					user.Name = args.Parameters[0];
+					user.Password = args.Parameters[1];
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /register <password>");
+					return;
+				}
+
+				user.Group = TShock.Config.DefaultRegistrationGroupName; // FIXME -- we should get this from the DB. --Why?
+				user.UUID = args.Player.UUID;
+
+                if (TShock.Users.GetUserByName(user.Name) == null && user.Name != TSServerPlayer.AccountName) // Cheap way of checking for existance of a user
+				{
+					args.Player.SendSuccessMessage("Account \"{0}\" has been registered.", user.Name);
+					args.Player.SendSuccessMessage("Your password is {0}.", user.Password);
+					TShock.Users.AddUser(user);
+					TShock.CharacterDB.SeedInitialData(TShock.Users.GetUser(user));
+					Log.ConsoleInfo("{0} registered an account: \"{1}\".", args.Player.Name, user.Name);
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Account " + user.Name + " has already been registered.");
+					Log.ConsoleInfo(args.Player.Name + " failed to register an existing account: " + user.Name);
+				}
+			}
+			catch (UserManagerException ex)
+			{
+				args.Player.SendErrorMessage("Sorry, an error occured: " + ex.Message + ".");
+				Log.ConsoleError("RegisterUser returned an error: " + ex);
+			}
+		}
+
+		private static void ManageUsers(CommandArgs args)
+		{
+			// This guy needs to be here so that people don't get exceptions when they type /user
+			if (args.Parameters.Count < 1)
+			{
+				args.Player.SendErrorMessage("Invalid user syntax. Try /user help.");
+				return;
+			}
+
+			string subcmd = args.Parameters[0];
+
+			// Add requires a username, password, and a group specified.
+			if (subcmd == "add")
+			{
+				var user = new User();
+
+				if (args.Parameters.Count == 4)
+				{
+					user.Name = args.Parameters[1];
+					user.Password = args.Parameters[2];
+					user.Group = args.Parameters[3];
+					
+					try
+					{
+						TShock.Users.AddUser(user);
+						TShock.CharacterDB.SeedInitialData(TShock.Users.GetUser(user));
+						args.Player.SendSuccessMessage("Account " + user.Name + " has been added to group " + user.Group + "!");
+						Log.ConsoleInfo(args.Player.Name + " added Account " + user.Name + " to group " + user.Group);
+					}
+					catch (GroupNotExistsException e)
+					{
+						args.Player.SendErrorMessage("Group " + user.Group + " does not exist!");
+					}
+					catch (UserExistsException e)
+					{
+						args.Player.SendErrorMessage("User " + user.Name + " already exists!");
+					}
+					catch (UserManagerException e)
+					{
+						args.Player.SendErrorMessage("User " + user.Name + " could not be added, check console for details.");
+						Log.ConsoleError(e.ToString());
+					}
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Invalid syntax. Try /user help.");
+				}
+			}
+				// User deletion requires a username
+			else if (subcmd == "del" && args.Parameters.Count == 2)
+			{
+				var user = new User();
+				user.Name = args.Parameters[1];
+
+				try
+				{
+					TShock.Users.RemoveUser(user);
+					args.Player.SendSuccessMessage("Account removed successfully.");
+					Log.ConsoleInfo(args.Player.Name + " successfully deleted account: " + args.Parameters[1] + ".");
+				}
+				catch (UserNotExistException e)
+				{
+					args.Player.SendErrorMessage("The user " + user.Name + " does not exist! Deleted nobody!");
+				}
+				catch (UserManagerException ex)
+				{
+					args.Player.SendMessage(ex.Message, Color.Red);
+					Log.ConsoleError(ex.ToString());
+				}
+			}
+			
+			// Password changing requires a username, and a new password to set
+			else if (subcmd == "password")
+			{
+				var user = new User();
+				user.Name = args.Parameters[1];
+
+				if (args.Parameters.Count == 3)
+				{
+					try
+					{
+						TShock.Users.SetUserPassword(user, args.Parameters[2]);
+						Log.ConsoleInfo(args.Player.Name + " changed the password of account " + user.Name);
+						args.Player.SendSuccessMessage("Password change succeeded for " + user.Name + ".");
+					}
+					catch (UserNotExistException e)
+					{
+						args.Player.SendErrorMessage("User " + user.Name + " does not exist!");
+					}
+					catch (UserManagerException e)
+					{
+						args.Player.SendErrorMessage("Password change for " + user.Name + " failed! Check console!");
+						Log.ConsoleError(e.ToString());
+					}
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Invalid user password syntax. Try /user help.");
+				}
+			}
+			// Group changing requires a username or IP address, and a new group to set
+			else if (subcmd == "group")
+			{
+	      var user = new User();
+	      user.Name = args.Parameters[1];
+
+				if (args.Parameters.Count == 3)
+				{
+					try
+					{
+						TShock.Users.SetUserGroup(user, args.Parameters[2]);
+						Log.ConsoleInfo(args.Player.Name + " changed account " + user.Name + " to group " + args.Parameters[2] + ".");
+						args.Player.SendSuccessMessage("Account " + user.Name + " has been changed to group " + args.Parameters[2] + "!");
+					}
+					catch (GroupNotExistsException e)
+					{
+						args.Player.SendErrorMessage("That group does not exist!");
+					}
+					catch (UserNotExistException e)
+					{
+						args.Player.SendErrorMessage("User " + user.Name + " does not exist!");
+					}
+					catch (UserManagerException e)
+					{
+						args.Player.SendErrorMessage("User " + user.Name + " could not be added. Check console for details.");
+					}
+
+				}
+				else
+				{
+					args.Player.SendErrorMessage("Invalid user group syntax. Try /user help.");
+				}
+			}
+			else if (subcmd == "help")
+			{
+				args.Player.SendInfoMessage("Use command help:");
+				args.Player.SendInfoMessage("/user add username password group   -- Adds a specified user");
+				args.Player.SendInfoMessage("/user del username                  -- Removes a specified user");
+				args.Player.SendInfoMessage("/user password username newpassword -- Changes a user's password");
+				args.Player.SendInfoMessage("/user group username newgroup       -- Changes a user's group");
+			}
+			else
+			{
+				args.Player.SendErrorMessage("Invalid user syntax. Try /user help.");
+			}
+		}
+
+		#endregion
+
+		#region Stupid commands
+
+		private static void ServerInfo(CommandArgs args)
+		{
+			args.Player.SendInfoMessage("Memory usage: " + Process.GetCurrentProcess().WorkingSet64);
+			args.Player.SendInfoMessage("Allocated memory: " + Process.GetCurrentProcess().VirtualMemorySize64);
+			args.Player.SendInfoMessage("Total processor time: " + Process.GetCurrentProcess().TotalProcessorTime);
+			args.Player.SendInfoMessage("WinVer: " + Environment.OSVersion);
+			args.Player.SendInfoMessage("Proc count: " + Environment.ProcessorCount);
+			args.Player.SendInfoMessage("Machine name: " + Environment.MachineName);
+		}
+
+		private static void WorldInfo(CommandArgs args)
+		{
+			args.Player.SendInfoMessage("World name: " + Main.worldName);
+			args.Player.SendInfoMessage("World size: {0}x{1}", Main.maxTilesX, Main.maxTilesY);
+			args.Player.SendInfoMessage("World ID: " + Main.worldID);
+		}
+
+		#endregion
+
+		#region Player Management Commands
+
+		private static void GrabUserUserInfo(CommandArgs args)
+		{
+			if (args.Parameters.Count < 1)
+			{
+				args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /userinfo <player>");
+				return;
+			}
+
+			var players = TShock.Utils.FindPlayer(args.Parameters[0]);
+			if (players.Count > 1)
+			{
+				TShock.Utils.SendMultipleMatchError(args.Player, players.Select(p => p.Name));
+				return;
+			}
+			try
+			{
+				args.Player.SendSuccessMessage("IP Address: " + players[0].IP + " Logged in as: " + players[0].UserAccountName + " group: " + players[0].Group.Name);
+			}
+			catch (Exception)
+			{
+				args.Player.SendErrorMessage("Invalid player.");
+			}
+		}
+
+		private static void Kick(CommandArgs args)
+		{
+			if (args.Parameters.Count < 1)
+			{
+				args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /kick <player> [reason]");
+				return;
+			}
+			if (args.Parameters[0].Length == 0)
+			{
+				args.Player.SendErrorMessage("Missing player name.");
+				return;
+			}
+
+			string plStr = args.Parameters[0];
+			var players = TShock.Utils.FindPlayer(plStr);
+			if (players.Count == 0)
+			{
+				args.Player.SendErrorMessage("Invalid player!");
+			}
+			else if (players.Count > 1)
+			{
+				TShock.Utils.SendMultipleMatchError(args.Player, players.Select(p => p.Name));
+			}
+			else
+			{
+				string reason = args.Parameters.Count > 1
+									? String.Join(" ", args.Parameters.GetRange(1, args.Parameters.Count - 1))
+									: "Misbehaviour.";
+				if (!TShock.Utils.Kick(players[0], reason, !args.Player.RealPlayer, false, args.Player.Name))
+				{
+					args.Player.SendErrorMessage("You can't kick another admin!");
+				}
+			}
+		}
+
+		private static void Ban(CommandArgs args)
+		{
+			string subcmd = args.Parameters.Count == 0 ? "help" : args.Parameters[0].ToLower();
+			switch (subcmd)
+			{
+				case "add":
+					#region Add ban
+					{
+						if (args.Parameters.Count < 2)
+						{
+							args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /ban add <player> [reason]");
+							return;
+						}
+>>>>>>> 6c5d22676336b77cff87ce4ea756996d87ab6c05
 
         private CommandDelegate commandDelegate;
         public CommandDelegate CommandDelegate

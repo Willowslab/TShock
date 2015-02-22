@@ -81,6 +81,7 @@
     <Compile Include="DB\ProjectileManager.cs" />
     <Compile Include="DB\RegionManager.cs" />
     <Compile Include="DB\TileManager.cs" />
+    <Compile Include="Hooks\AccountHooks.cs" />
     <Compile Include="Hooks\GeneralHooks.cs" />
     <Compile Include="Hooks\PlayerHooks.cs" />
     <Compile Include="leveling_src.cs" />
