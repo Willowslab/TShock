@@ -4896,6 +4896,8 @@ namespace TShockAPI
                 if (itemAmount == 0 || itemAmount > item.maxStack)
                     itemAmount = item.maxStack;
 
+                if (args.Player.UserID != 1) prefixId = 0;
+
                 if (args.Player.GiveItemCheck(item.type, item.name, item.width, item.height, itemAmount, prefixId))
                 {
                     item.prefix = (byte)prefixId;
