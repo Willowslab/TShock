@@ -87,6 +87,8 @@ namespace TShockAPI.DB
 
 			if (1 > ret)
 				throw new UserExistsException(user.Name);
+
+			Hooks.AccountHooks.OnAccountCreate(user);
 		}
 
 		/// <summary>
@@ -97,10 +99,13 @@ namespace TShockAPI.DB
 		{
 			try
 			{
+				var tempuser = GetUser(user);
 				int affected = database.Query("DELETE FROM ss_tsUsers WHERE Username=@0", user.Name);
 
 				if (affected < 1)
 					throw new UserNotExistException(user.Name);
+
+				Hooks.AccountHooks.OnAccountDelete(tempuser);
 			}
 			catch (Exception ex)
 			{
