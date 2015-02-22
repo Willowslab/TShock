@@ -99,12 +99,8 @@ namespace TShockAPI.DB
 		{
 			try
 			{
-<<<<<<< HEAD
-				int affected = database.Query("DELETE FROM ss_tsUsers WHERE Username=@0", user.Name);
-=======
 				var tempuser = GetUser(user);
-				int affected = database.Query("DELETE FROM Users WHERE Username=@0", user.Name);
->>>>>>> 6c5d22676336b77cff87ce4ea756996d87ab6c05
+				int affected = database.Query("DELETE FROM ss_tsUsers WHERE Username=@0", user.Name);
 
 				if (affected < 1)
 					throw new UserNotExistException(user.Name);
