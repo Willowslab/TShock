@@ -31,7 +31,7 @@ namespace TShockAPI.DB
                     new SqlColumn("prefix", MySqlDbType.Int32));
 
                 var creator = new SqlTableCreator(db, db.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
-                creator.EnsureExists(table);
+                creator.EnsureTableStructure(table);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(" [ TShock x Lv Plugin ] 데이터베이스를 초기화하였습니다.");

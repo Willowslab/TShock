@@ -27,7 +27,7 @@ namespace TShockAPI.DB
             var table = new SqlTable("ss_tsusers_islogged", new SqlColumn("Account", MySqlDbType.Int32) { Primary = true }, new SqlColumn("islogged", MySqlDbType.Int32) { DefaultValue = "-1" });
 
             var creator = new SqlTableCreator(db, db.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
-            creator.EnsureExists(table);
+            creator.EnsureTableStructure(table);
         }
 
         public void LoggedOut(int UserID)
